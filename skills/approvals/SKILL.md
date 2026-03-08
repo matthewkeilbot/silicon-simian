@@ -1,9 +1,9 @@
 ---
-name: group-approval-gate
+name: approvals
 description: Control-plane approval workflow for new group participation. Use when a new group/chat interaction appears and explicit approval is required before participating.
 ---
 
-# Group Approval Gate (Control Plane Policy)
+# Approvals (Control Plane Policy)
 
 ## Purpose
 Prevent unintended participation in new group chats.
