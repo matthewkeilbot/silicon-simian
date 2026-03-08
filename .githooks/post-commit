@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if command -v gh >/dev/null 2>&1; then
+  remote_url=$(git remote get-url origin 2>/dev/null || true)
+  if [[ "$remote_url" =~ github.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
+    owner="${BASH_REMATCH[1]}"
+    repo="${BASH_REMATCH[2]}"
+    is_private=$(gh repo view "$owner/$repo" --json isPrivate --jq '.isPrivate' 2>/dev/null || echo "unknown")
+    if [[ "$is_private" != "true" ]]; then
+      echo "[post-commit] Refusing to push: $owner/$repo is not private (isPrivate=$is_private)" >&2
+      exit 1
+    fi
+  fi
+fi
+
+git push --quiet || {
+  echo "[post-commit] Push failed; commit kept locally for retry." >&2
+  exit 1
+}

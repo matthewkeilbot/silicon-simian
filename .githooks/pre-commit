@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+staged_files=$(git diff --cached --name-only)
+[ -z "$staged_files" ] && exit 0
+
+blocked_regex='(^|/)(MEMORY\.md|memory/|openclaw\.json|credentials/|sessions/|subagents/|telegram/|identity/|\.env|.*\.pem|.*\.key)$'
+
+while IFS= read -r f; do
+  if [[ "$f" =~ $blocked_regex ]]; then
+    echo "[pre-commit] BLOCKED sensitive path: $f" >&2
+    exit 1
+  fi
+done <<< "$staged_files"
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --verbose >/dev/null || {
+    echo "[pre-commit] BLOCKED by gitleaks" >&2
+    exit 1
+  }
+fi

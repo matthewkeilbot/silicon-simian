@@ -1,0 +1,15 @@
+# domain,method
+cointelegraph.com,urllib
+eips.ethereum.org,urllib
+ethresear.ch,urllib
+github.com,urllib
+news.ycombinator.com,urllib
+www.beaconcha.in,curl_cffi
+www.g2.com,dynamicfetcher
+www.glassdoor.com,curl_cffi
+www.indeed.com,curl_cffi
+www.kasada.io,urllib
+www.linkedin.com,urllib
+www.npmjs.com,curl_cffi
+www.nytimes.com,urllib
+www.reuters.com,dynamicfetcher

@@ -1,0 +1,32 @@
+# Sensitive/private
+MEMORY.md
+HEARBEAT.md
+memory/
+
+# Secrets/config
+openclaw.json
+openclaw.json.bak*
+config/openclaw.json
+config/openclaw.template.json
+*.env
+*.pem
+*.key
+
+# Runtime/cache/temp
+.openclaw/
+**/__pycache__/
+*.pyc
+node_modules/
+.tmp/
+TEMP_ARTIFACTS.md
+
+# Large/generated artifacts (adjust as needed)
+assets/
+
+# OS/editor noise
+.DS_Store
+*.swp
+*.swo
+
+# Dont know what it is but being safe
+.pi/
