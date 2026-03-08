@@ -15,6 +15,13 @@ Skills define _how_ tools work. This file is for _your_ setup-specific notes onl
 - When creating a new MEK-owned repo, add `@matthewkeil` as admin.
 - **Never force-push rewritten history unless Matthew explicitly approves it in the control plane for that specific case.**
 
+## Commit & Backup Cadence
+
+- Do not batch unrelated edits for long periods.
+- After each meaningful workspace change, commit and push to `origin/main` promptly as backup.
+- Do not wait to be reminded to commit/push.
+- If pausing with uncommitted work, either commit immediately or post a clear blocker/update in control-plane.
+
 ## Local Environment Notes
 
 - Host OS: Ubuntu 24.04
