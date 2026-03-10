@@ -125,31 +125,16 @@ On successful handling (attempt 1, 2, or 3):
 
 ## 8) Error Recording for Each Attempt
 
-Need: preserve per-attempt failure reason without local state dependency.
+Error state is tracked explicitly in the **daily digest file**, not mailbox labels.
 
-### Mailbox-visible error labels
-For each failed attempt, apply one attempt-scoped error label:
-- `proc_err_a1_<code>`
-- `proc_err_a2_<code>`
-- `proc_err_a3_<code>`
-
-Where `<code>` is from a bounded taxonomy, e.g.:
-- `rule_eval`
-- `unsubscribe`
-- `move`
-- `auth`
-- `timeout`
-- `rate_limit`
-- `unknown`
+Where error detail lives:
+- Primary: `/state/email/YYYY-MM-DD-email-digest.md` under `### Errors`
+- Secondary: runtime logs keyed by messageId + attempt number
 
 Rules:
-- Add the attempt error label only when that attempt fails.
-- Do not remove older attempt error labels during retries.
-- On successful handling, remove all `proc_err_a*_` labels before terminal move.
-- On move to Failed Processing, keep error labels for audit/review.
-
-### Detailed diagnostics
-Detailed stack/error text lives in runtime logs keyed by messageId + attempt number. Mailbox labels carry compact reason codes for workflow visibility.
+- On each failed attempt, append/update a detailed Errors entry in the daily digest.
+- Do not use mailbox error labels for tracking.
+- On successful handling, mark prior digest error entries resolved by status update (or leave historical entries intact with final success note, per implementation preference).
 
 ---
 
@@ -225,7 +210,7 @@ id: <stable-entry-id>
 messageId: <gmail-message-id>
 threadId: <gmail-thread-id>
 attemptNumber: <1|2|3>
-errorCodeLabel: <proc_err_aN_code>
+errorCode: <bounded code: rule_eval|unsubscribe|move|auth|timeout|rate_limit|unknown>
 errorClass: <exception type/category>
 errorMessage: <full error message>
 stackTrace: |
@@ -242,7 +227,7 @@ Schema notes:
 
 Notes:
 - Errors section is the canonical digest surface for operational failure details.
-- Error labels remain on messages for machine-readable workflow state; digest provides human-readable review.
+- Mailbox error labels are intentionally not used; digest entries are the source of truth for error tracking.
 
 ---
 
