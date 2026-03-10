@@ -153,19 +153,30 @@ Detailed stack/error text lives in runtime logs keyed by messageId + attempt num
 
 ---
 
-## 9) Digest Workflow (Unhandled + Failed Review)
+## 9) Digest Workflow (Unhandled + Failed + Errors Review)
 
 A few times per day, produce digest sections for:
 1. **Unhandled** items.
 2. **Failed Processing** items.
+3. **Errors** (attempt failures observed since last digest window).
 
-Digest fields (minimum):
+### Base fields (minimum)
 - sender
 - subject
 - received time
 - attempt tags present / attempts exhausted
-- error code labels
 - suggested action (new policy, bug fix, manual requeue)
+
+### Errors section fields
+- messageId/threadId
+- attempt number
+- error code label (e.g., `proc_err_a2_timeout`)
+- short error summary
+- status (`will_retry` if still in INBOX, `moved_failed_processing` if terminal)
+
+Notes:
+- Errors section is the canonical place in digest output for operational failure details.
+- Error labels remain on messages for machine-readable workflow state; digest provides human-readable review.
 
 ---
 
