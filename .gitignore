@@ -2,6 +2,7 @@
 MEMORY.md
 HEARBEAT.md
 memory/
+state/
 
 # Secrets/config
 openclaw.json

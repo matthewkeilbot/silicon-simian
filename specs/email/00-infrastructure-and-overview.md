@@ -1,6 +1,6 @@
 # Email Infrastructure & Processing Overview (Inbound-Only, Agent Mailbox)
 
-Status: Draft v5  
+Status: Draft v6  
 Owner: MEK agent  
 Date: 2026-03-10
 
@@ -125,7 +125,7 @@ On successful handling (attempt 1, 2, or 3):
 
 ## 8) Error Recording for Each Attempt
 
-Error state is tracked explicitly in the **daily digest file**, not mailbox labels.
+Error state is tracked explicitly in the **daily digest file**.
 
 Where error detail lives:
 - Primary: `/state/email/YYYY-MM-DD-email-digest.md` under `### Errors`
@@ -133,8 +133,7 @@ Where error detail lives:
 
 Rules:
 - On each failed attempt, append/update a detailed Errors entry in the daily digest.
-- Do not use mailbox error labels for tracking.
-- On successful handling, mark prior digest error entries resolved by status update (or leave historical entries intact with final success note, per implementation preference).
+- On successful handling, leave historical entries intact with final success note entry.
 
 ---
 
@@ -199,7 +198,7 @@ subject: <subject>
 receivedAt: <ISO-8601 UTC>
 attemptsExhausted: 3
 attemptTagsAtFailure: [proc_attempt_1, proc_attempt_2, proc_attempt_3]
-failureStage: <rule_eval|unsubscribe|move|auth|timeout|rate_limit|unknown>
+detailedReasonForFailure: <explanation of error>
 suggestedAction: <fix/requeue guidance>
 status: failed_processing
 ```
@@ -210,14 +209,14 @@ id: <stable-entry-id>
 messageId: <gmail-message-id>
 threadId: <gmail-thread-id>
 attemptNumber: <1|2|3>
-errorCode: <bounded code: rule_eval|unsubscribe|move|auth|timeout|rate_limit|unknown>
+errorCode: <rule_eval|unsubscribe|move|auth|timeout|rate_limit|unknown>
 errorClass: <exception type/category>
 errorMessage: <full error message>
 stackTrace: |
   <full stack trace when applicable>
 operation: <where failure happened>
 occurredAt: <ISO-8601 UTC>
-status: <will_retry|moved_failed_processing>
+status: <will_retry|moved_failed_processing|resolved_after_retry>
 ```
 
 Schema notes:
@@ -227,7 +226,7 @@ Schema notes:
 
 Notes:
 - Errors section is the canonical digest surface for operational failure details.
-- Mailbox error labels are intentionally not used; digest entries are the source of truth for error tracking.
+- Mailbox error labels are not used; digest entries are the source of truth for error tracking.
 
 ---
 
@@ -286,7 +285,6 @@ Operational requirements:
 - Retry is natural: failed items remain in INBOX.
 - Retry state is encoded in attempt tags on the message.
 - Re-runs must be idempotent.
-- Replay from last known history anchor when needed.
 - If history window expires, perform bounded resync and continue.
 
 No separate local “handled DB” should be required for correctness.
@@ -299,14 +297,3 @@ No separate local “handled DB” should be required for correctness.
 - No outbound send scope in v1.
 - Secrets only in OpenClaw-managed config.
 - Do not leak sensitive raw email data into untrusted channels.
-
----
-
-## 15) Next Specs (Deferred)
-
-Future documents under `specs/email/` should cover:
-- `01-inbound-policy-and-routing.md`
-- `02-unhandled-and-failed-digest-review.md`
-- `03-spam-promotions-unsubscribe-policy.md`
-
-This file remains the infrastructure + processing contract overview.
