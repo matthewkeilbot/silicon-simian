@@ -182,10 +182,8 @@ threadId: <gmail-thread-id>
 sender: <display name/email>
 subject: <subject>
 receivedAt: <ISO-8601 UTC>
-attemptTags: [proc_attempt_1, ...]
 reasonUnmatched: <why no inbound policy matched>
 suggestedAction: <one-line policy suggestion>
-status: unhandled
 ```
 
 #### Failed schema
@@ -197,10 +195,8 @@ sender: <display name/email>
 subject: <subject>
 receivedAt: <ISO-8601 UTC>
 attemptsExhausted: 3
-attemptTagsAtFailure: [proc_attempt_1, proc_attempt_2, proc_attempt_3]
 detailedReasonForFailure: <explanation of error>
 suggestedAction: <fix/requeue guidance>
-status: failed_processing
 ```
 
 #### Errors schema (detailed)
@@ -209,14 +205,11 @@ id: <stable-entry-id>
 messageId: <gmail-message-id>
 threadId: <gmail-thread-id>
 attemptNumber: <1|2|3>
-errorCode: <rule_eval|unsubscribe|move|auth|timeout|rate_limit|unknown>
-errorClass: <exception type/category>
 errorMessage: <full error message>
 stackTrace: |
   <full stack trace when applicable>
 operation: <where failure happened>
 occurredAt: <ISO-8601 UTC>
-status: <will_retry|moved_failed_processing|resolved_after_retry>
 ```
 
 Schema notes:
