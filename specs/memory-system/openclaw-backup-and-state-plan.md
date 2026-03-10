@@ -13,7 +13,7 @@ Restore state quickly after host failure while keeping private memory/conversati
 - Auto-push immediately after each commit using tracked hooks in `.githooks/`.
 - Canonical branch: `main`
 - Remote: `origin -> git@github.com:matthewkeilbot/silicon-simian.git`
-- `~/dev/*` remains independently git-managed.
+- `~/.openclaw/workspace/repos/*` remains independently git-managed.
 
 ### Lane B — **Encrypted private-state backups**
 - Use `restic` to Google Drive (preferred) or S3, always client-side encrypted.
