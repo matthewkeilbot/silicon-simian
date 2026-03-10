@@ -23,6 +23,9 @@ TEMP_ARTIFACTS.md
 # Large/generated artifacts (adjust as needed)
 assets/
 
+# Git repos with their own git tracking
+repos/
+
 # OS/editor noise
 .DS_Store
 *.swp
