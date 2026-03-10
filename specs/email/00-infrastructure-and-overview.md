@@ -1,6 +1,6 @@
 # Email Infrastructure & Processing Overview (Inbound-Only, Agent Mailbox)
 
-Status: Draft v4  
+Status: Draft v5  
 Owner: MEK agent  
 Date: 2026-03-10
 
@@ -172,6 +172,11 @@ The daily digest is built incrementally as the day progresses (rolling accumulat
 
 By end-of-day digest time, the file is already complete and ready to present.
 
+### Retention and offload
+- Keep digest files locally in `/state/email` for **30 days**.
+- After 30 days, upload digest files to **Google Drive** for archive.
+- After confirmed upload, local copies may be pruned according to storage policy.
+
 ### Required daily format
 ```md
 # Email Digest for YYYY-MM-DD
@@ -183,19 +188,57 @@ By end-of-day digest time, the file is already complete and ready to present.
 ### Errors
 ```
 
-### Entry fields (minimum)
-- sender
-- subject
-- received time
-- attempt tags present / attempts exhausted
-- suggested action
+### Digest section schemas
 
-### Errors section additional fields
-- messageId/threadId
-- attempt number
-- error code label (e.g., `proc_err_a2_timeout`)
-- short error summary
-- status (`will_retry` if still in INBOX, `moved_failed_processing` if terminal)
+#### Unhandled schema
+```yaml
+id: <stable-entry-id>
+messageId: <gmail-message-id>
+threadId: <gmail-thread-id>
+sender: <display name/email>
+subject: <subject>
+receivedAt: <ISO-8601 UTC>
+attemptTags: [proc_attempt_1, ...]
+reasonUnmatched: <why no inbound policy matched>
+suggestedAction: <one-line policy suggestion>
+status: unhandled
+```
+
+#### Failed schema
+```yaml
+id: <stable-entry-id>
+messageId: <gmail-message-id>
+threadId: <gmail-thread-id>
+sender: <display name/email>
+subject: <subject>
+receivedAt: <ISO-8601 UTC>
+attemptsExhausted: 3
+attemptTagsAtFailure: [proc_attempt_1, proc_attempt_2, proc_attempt_3]
+failureStage: <rule_eval|unsubscribe|move|auth|timeout|rate_limit|unknown>
+suggestedAction: <fix/requeue guidance>
+status: failed_processing
+```
+
+#### Errors schema (detailed)
+```yaml
+id: <stable-entry-id>
+messageId: <gmail-message-id>
+threadId: <gmail-thread-id>
+attemptNumber: <1|2|3>
+errorCodeLabel: <proc_err_aN_code>
+errorClass: <exception type/category>
+errorMessage: <full error message>
+stackTrace: |
+  <full stack trace when applicable>
+operation: <where failure happened>
+occurredAt: <ISO-8601 UTC>
+status: <will_retry|moved_failed_processing>
+```
+
+Schema notes:
+- **Errors must include detailed diagnostics**; include full stack traces when applicable.
+- If no stack trace exists (non-exception failure), `stackTrace` should be `N/A` and `errorMessage` must still be detailed.
+- Use stable `id` per digest entry to support in-place updates during the day.
 
 Notes:
 - Errors section is the canonical digest surface for operational failure details.
