@@ -153,21 +153,44 @@ Detailed stack/error text lives in runtime logs keyed by messageId + attempt num
 
 ---
 
-## 9) Digest Workflow (Unhandled + Failed + Errors Review)
+## 9) Daily Rolling Digest Workflow (Unhandled + Failed + Errors)
 
-A few times per day, produce digest sections for:
-1. **Unhandled** items.
-2. **Failed Processing** items.
-3. **Errors** (attempt failures observed since last digest window).
+Digest cadence is **once per day**.
 
-### Base fields (minimum)
+### Digest file location + naming
+- Directory: `/state/email`
+- File name: `YYYY-MM-DD-email-digest.md`
+
+Example:
+- `/state/email/2026-03-10-email-digest.md`
+
+### Build model
+The daily digest is built incrementally as the day progresses (rolling accumulation):
+- During the digest period, when an item becomes Unhandled, append/update it in **Unhandled** section.
+- During the digest period, when an item moves to Failed Processing, append/update it in **Failed** section.
+- During the digest period, when an attempt error occurs, append/update it in **Errors** section.
+
+By end-of-day digest time, the file is already complete and ready to present.
+
+### Required daily format
+```md
+# Email Digest for YYYY-MM-DD
+
+### Unhandled
+
+### Failed
+
+### Errors
+```
+
+### Entry fields (minimum)
 - sender
 - subject
 - received time
 - attempt tags present / attempts exhausted
-- suggested action (new policy, bug fix, manual requeue)
+- suggested action
 
-### Errors section fields
+### Errors section additional fields
 - messageId/threadId
 - attempt number
 - error code label (e.g., `proc_err_a2_timeout`)
@@ -175,7 +198,7 @@ A few times per day, produce digest sections for:
 - status (`will_retry` if still in INBOX, `moved_failed_processing` if terminal)
 
 Notes:
-- Errors section is the canonical place in digest output for operational failure details.
+- Errors section is the canonical digest surface for operational failure details.
 - Error labels remain on messages for machine-readable workflow state; digest provides human-readable review.
 
 ---
