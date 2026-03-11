@@ -270,6 +270,7 @@ Operational requirements:
 - run as long-lived service (systemd preferred)
 - auto-restart on failure
 - monitor renew failures, auth failures, processing lag
+- scheduling policy: use OpenClaw-native cron/job management only (`openclaw cron ...`), never generic host cron edits for this workflow
 
 ---
 

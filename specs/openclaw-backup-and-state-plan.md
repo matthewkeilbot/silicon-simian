@@ -59,7 +59,7 @@ Enforcement layers:
 | `agents/` | No | Yes | Runtime state; useful for restore. |
 | `data/` | No | Yes | Runtime/internal stores. |
 | `devices/` | No | Yes | Pairing/metadata. |
-| `cron/` | No (runtime DB) | Yes | Export declarative cron spec into `workspace/specs/cron/` for git. |
+| `cron/` | No (runtime DB) | Yes | Export declarative cron spec into `workspace/specs/cron/` for git. Manage jobs with OpenClaw CLI only (`openclaw cron ...`). |
 | `media/` | No | Optional | Include if attachment continuity required. |
 | `logs/`, `completions/`, `canvas/`, `delivery-queue/`, `update-check.json` | No | Optional/No | Mostly ephemeral/debug. |
 
