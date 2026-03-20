@@ -227,10 +227,16 @@ Notes:
 
 Flow:
 1. Gmail watch emits mailbox changes to Pub/Sub.
-2. Pub/Sub pushes to secured webhook endpoint.
-3. Handler (`openclaw webhooks gmail run`) forwards to OpenClaw `/hooks/gmail`.
-4. OpenClaw resolves history delta and fetches needed message data.
-5. Agent processes INBOX queue under attempt-tag + handle-then-move contract.
+2. Pub/Sub pushes to the Gmail receiver endpoint exposed by `openclaw webhooks gmail run`.
+3. The Gmail receiver validates the inbound push using the configured **push token** (`--push-token`).
+4. Pub/Sub push delivery should also be authenticated with **OIDC bearer JWT** from GCP and verified at the ingress/app boundary.
+5. The Gmail receiver forwards the normalized event to the OpenClaw hook endpoint using the **hook token** (`--hook-token`).
+6. OpenClaw resolves history delta and fetches needed message data.
+7. Agent processes INBOX queue under attempt-tag + handle-then-move contract.
+
+Auth boundary summary:
+- **GCP Pub/Sub → Gmail receiver**: OIDC JWT + `push-token`
+- **Gmail receiver → OpenClaw hook**: `hook-token`
 
 Note:
 Gmail Pub/Sub is change-notification driven (history-based), not guaranteed full payload delivery by itself.
@@ -246,11 +252,18 @@ If exposed publicly, nginx should provide:
 - Request size/timeout limits.
 - Access logging.
 
-Auth/integrity baseline:
-- Pub/Sub OIDC JWT verification and/or
-- shared push token validation.
+Canonical auth/integrity baseline:
+- **Pub/Sub OIDC JWT verification** on inbound push requests.
+- **OpenClaw/GOG push token validation** for the Gmail receiver endpoint (`--push-token`).
 
-Recommendation: OIDC + token defense-in-depth.
+Implementation note:
+- `push-token` protects the **Pub/Sub → Gmail receiver** hop.
+- `hook-token` protects the **Gmail receiver → OpenClaw hook** hop.
+- These are distinct controls and should not be conflated.
+
+Recommendation:
+- Require **OIDC JWT + push-token** on the public ingress path.
+- Require **hook-token** on the internal OpenClaw hook handoff.
 
 ---
 
