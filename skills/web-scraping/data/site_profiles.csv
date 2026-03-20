@@ -2,8 +2,10 @@
 cointelegraph.com,urllib
 eips.ethereum.org,urllib
 ethresear.ch,urllib
+example.com,urllib
 github.com,urllib
 news.ycombinator.com,urllib
+seats.aero,curl_cffi
 www.beaconcha.in,curl_cffi
 www.g2.com,dynamicfetcher
 www.glassdoor.com,curl_cffi
@@ -13,3 +15,4 @@ www.linkedin.com,urllib
 www.npmjs.com,curl_cffi
 www.nytimes.com,urllib
 www.reuters.com,dynamicfetcher
+www.united.com,curl_cffi

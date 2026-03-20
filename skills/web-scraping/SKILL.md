@@ -27,7 +27,6 @@ Keep this skill lean: fetch only what is required for the task.
 ## Usage
 
 ```bash
-source ~/camoufox-env/bin/activate
 python3 skills/web-scraping/scripts/auto_scrape.py "https://example.com" --json
 ```
 

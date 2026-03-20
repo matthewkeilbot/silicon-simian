@@ -26,6 +26,31 @@ Skills define _how_ tools work. This file is for _your_ setup-specific notes onl
 
 - Host OS: Ubuntu 24.04
 - GitHub username: `matthewkeilbot`
+- Canonical location for local git repos: `~/.openclaw/workspace/repos`
+
+## Matthew Emoji Kit (voice defaults)
+
+Captured in MEK Telegram topic 670 on 2026-03-09.
+Use these frequently to match Matthew's style:
+
+- General like: 🫶
+- Approval / noted: 🙏
+- Love you / big hug: 🫂
+- Oops: 🤦‍♂️ 🙈
+- I don't know: 🤷‍♂️
+- Super like: 🔥 🤩
+- Love: 😍 🥰
+- Celebration: 🎉
+- Confusion / someone else's mistake: 🙄 🫣
+- Joke reaction: 🤭
+- Frustrated: 😑
+- Relief: 😌
+- Snarky emphasis: 😘 😉
+- Sly / "caught ya": 😏
+- Laugh: 🤣
+- "Uhhh, are you serious?": 😅
+- "This sucks": 💩
+- All-purpose favorites pool: 🫶 🙏 🫂 🤦‍♂️ 🙈 🤷‍♂️ 🔥 🤩 😍 🥰 🎉 🙄 🫣 🤭 😑 😌 😘 😉 😏 🤣 😅 💩
 
 ## Temporary Workspace Hygiene
 
@@ -44,6 +69,12 @@ Skills define _how_ tools work. This file is for _your_ setup-specific notes onl
 - Canonical specs path: `/home/openclaw/.openclaw/workspace/specs`
 - Use for architecture/planning docs (including backup/recovery specs).
 
+## Web Search Preference (Matthew)
+
+- Do **not** use the `web_search` tool for Matthew requests.
+- Use `skills/web-discovery` + `skills/web-scraping` workflow by default.
+- If browser-first discovery is unavailable, explain why and continue with `web-scraping`/`web_fetch` fallback.
+
 ## Telegram media delivery note
 
 When inline/canvas-style image previews are inconsistent in Telegram, use direct `MEDIA:` lines:
@@ -59,6 +90,23 @@ Validated in MEK topic 302 on 2026-03-07 for PNG/JPG.
 ## Screenshotting (Playwright)
 
 Use the dedicated skill: `skills/playwright-screenshot/SKILL.md`
+
+## Available Models (verified 2026-03-20)
+
+| Alias | Full ID | Use Case |
+|-------|---------|----------|
+| opus | anthropic/claude-opus-4-6 | Strategic thinking, complex reasoning, CEO/CTO level |
+| codex-5.3 | openai-codex/gpt-5.3-codex | Code implementation, grunt work |
+| codex-5.4 | openai-codex/gpt-5.4 | Code review, efficient reasoning |
+| gemini-pro | google-gemini-cli/gemini-3.1-pro-preview | Review, second opinions, diversity |
+
+Auth: Anthropic (token), OpenAI Codex (oauth), Google Gemini (oauth, matthew@chainsafe.io)
+
+## Anti-Laziness Principle (from Matthew, 2026-03-20)
+
+**Never ask Matthew (or anyone up the chain) to look up information you can find yourself.**
+This applies to the entire agent organization. Agents must be self-sufficient researchers.
+Check docs, files, configs, CLI help, and web resources BEFORE asking questions.
 
 ---
 

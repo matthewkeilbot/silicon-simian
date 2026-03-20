@@ -24,7 +24,6 @@ Use this when you want real SERP behavior instead of search APIs.
 ## Batch extraction
 
 ```bash
-source ~/camoufox-env/bin/activate
 python3 skills/web-discovery/scripts/batch_scrape.py \
   --input /tmp/urls.txt \
   --output /tmp/scrape-results.jsonl \

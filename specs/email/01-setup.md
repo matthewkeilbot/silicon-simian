@@ -63,60 +63,122 @@ A reachable webhook path is required for Pub/Sub push delivery.
 - Request body size limits and sane timeouts.
 - Access logging enabled for troubleshooting.
 
-### 2.3 Add request integrity/auth controls
+### 2.3 Configure canonical auth controls for the inbound push hop
 
-Use one or both:
-- Pub/Sub OIDC JWT verification
-- shared push token validation
+The public webhook path must enforce **both** of these controls:
 
-Recommended: both (defense in depth).
+1. **Pub/Sub OIDC JWT verification**
+   - Configure the Pub/Sub push subscription with:
+     - `--push-auth-service-account=<service-account-email>`
+     - `--push-auth-token-audience=<expected-audience>`
+   - Verify on receipt:
+     - `Authorization: Bearer <JWT>` is present
+     - issuer is Google (`accounts.google.com` / `https://accounts.google.com`)
+     - audience matches configured value
+     - token email/service account identity matches the configured push auth service account
+     - token signature is valid
 
-### 2.4 Validate external reachability
+2. **OpenClaw/GOG push token**
+   - Generate a high-entropy random token.
+   - Store it in OpenClaw-managed secrets/config.
+   - Pass it to OpenClaw as `--push-token <token>`.
+   - Configure the Pub/Sub push endpoint created/used by setup so the Gmail receiver expects that token.
+
+### 2.4 Distinguish the two tokens correctly
+
+These are different controls for different hops:
+- `--push-token` = protects **Pub/Sub → Gmail receiver**
+- `--hook-token` = protects **Gmail receiver → OpenClaw hook**
+
+Do not reuse or conflate them.
+
+### 2.5 Validate external reachability
 
 - Confirm endpoint is reachable from Google Pub/Sub.
-- Confirm non-POST and invalid-auth requests are rejected.
+- Confirm non-POST requests are rejected.
+- Confirm invalid/missing OIDC JWT is rejected.
+- Confirm invalid/missing `push-token` is rejected.
 
 ---
 
-## 1) Run OpenClaw Gmail setup
+## 1) Generate and store required secrets
 
-- Execute:
-  - `openclaw webhooks gmail setup --account <agent-email>`
-- Expected outcome:
-  - Gmail watch configured
-  - Pub/Sub subscription configured
-  - OpenClaw hook wiring created
+Generate two distinct high-entropy tokens:
+- **push token** for `--push-token`
+- **hook token** for `--hook-token`
 
-## 2) Start Gmail webhook worker
+Requirements:
+- generate with a cryptographically secure source
+- store in OpenClaw-managed config/secrets
+- do not commit them to git
+- do not reuse one token for both roles
 
-- Run:
-  - `openclaw webhooks gmail run`
-- Optional runtime tuning:
-  - `--include-body`
-  - `--max-bytes`
-  - `--renew-minutes`
-  - bind/path/hook options
+## 2) Run OpenClaw Gmail setup
 
-## 3) Make it persistent
+Execute with explicit auth parameters:
+- `openclaw webhooks gmail setup --account <agent-email> --push-token <push-token> --hook-token <hook-token>`
+
+Add explicit network parameters when needed:
+- `--hook-url <openclaw-hook-url>`
+- `--push-endpoint <public-gmail-pubsub-url>`
+- `--path /gmail-pubsub`
+- `--project <gcp-project-id>`
+- `--subscription <pubsub-subscription-name>`
+- `--topic <pubsub-topic-name>`
+
+Expected outcome:
+- Gmail watch configured
+- Pub/Sub subscription configured
+- Gmail receiver configured to require `push-token`
+- OpenClaw hook wiring configured to require `hook-token`
+
+## 3) Configure Pub/Sub authenticated push correctly
+
+Ensure the Pub/Sub push subscription uses authenticated push:
+- delivery type: **Push**
+- push endpoint: the public `/gmail-pubsub` URL
+- authentication: **enabled**
+- push auth service account: dedicated service account for this push path
+- push auth token audience: explicit expected audience for the webhook
+
+Required IAM:
+- Pub/Sub service agent must have `roles/iam.serviceAccountTokenCreator` on the push auth service account
+- the identity creating/updating the subscription must have `iam.serviceAccounts.actAs` on that push auth service account
+
+## 4) Start Gmail webhook worker
+
+Run with the same auth parameters used in setup:
+- `openclaw webhooks gmail run --account <agent-email> --push-token <push-token> --hook-token <hook-token>`
+
+Optional runtime tuning:
+- `--include-body`
+- `--max-bytes`
+- `--renew-minutes`
+- `--bind`
+- `--port`
+- `--path`
+- tailscale exposure options if used
+
+## 5) Make it persistent
 
 - Run as long-lived service (systemd preferred).
 - Enable auto-restart on failure.
 - Enable start at boot.
 
-## 4) Validate end-to-end
+## 6) Validate end-to-end
 
 - Send test email into inbox.
 - Confirm OpenClaw receives/processes it.
 - Confirm retries are idempotent (no duplicate processing chaos).
 
-## 5) Security hardening checks
+## 7) Security hardening checks
 
 - Least-privilege OAuth scopes only.
 - No outbound send scope in v1 unless explicitly needed.
 - Secrets remain in OpenClaw-managed config.
 - No sensitive/raw email leakage to untrusted channels.
 
-## 6) Ops checks
+## 8) Ops checks
 
 - Monitor:
   - watch renew failures
@@ -124,13 +186,13 @@ Recommended: both (defense in depth).
   - processing lag
 - Define recovery runbook (restart worker, re-establish watch if needed).
 
-## 7) Scheduling policy (authoritative)
+## 9) Scheduling policy (authoritative)
 
 For recurring operational jobs in this workflow:
 - Use OpenClaw-native scheduling only: `openclaw cron ...`
 - Do **not** manage this workflow via generic host cron edits.
 
-## 8) Final acceptance
+## 10) Final acceptance
 
 Mark complete only when:
 - live ingest test passed,
