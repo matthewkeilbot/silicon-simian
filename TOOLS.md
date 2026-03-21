@@ -104,14 +104,13 @@ Use the dedicated skill: `skills/playwright-screenshot/SKILL.md`
 
 Primary: anthropic/claude-opus-4-6
 Fallbacks: openai-codex/gpt-5.4, google-gemini-cli/gemini-3-pro-preview
-Auth: Anthropic (setup-token), OpenAI Codex (oauth), Google Gemini (oauth, matthew@chainsafe.io)
+Auth: Anthropic (setup-token), OpenAI Codex (OAuth), Google Gemini (OAuth, matthew@chainsafe.io)
 
-⚠️ **NEVER use raw API billing. ALWAYS use subscription plans.**
-- Anthropic: Claude Max subscription via setup-token (NOT API keys)
-- OpenAI: Codex Pro subscription via OAuth (NOT API keys)
+⚠️ **No API keys exist. All auth is subscription-only. Never create or use API keys.**
+- Anthropic: Claude Max subscription via setup-token
+- OpenAI: Codex Pro subscription via OAuth
 - Google: Gemini CLI OAuth
-- If auth expires, re-auth the subscription — do NOT fall back to API keys
-- This applies to ALL agents in the org (CEO, C-levels, ACP workers)
+- If auth expires → re-auth the subscription, never create API keys as a workaround
 
 ## Anti-Laziness Principle (from Matthew, 2026-03-20)
 

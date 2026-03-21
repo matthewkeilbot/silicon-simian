@@ -58,21 +58,19 @@ Everything in Phase 1 is forward-compatible with Phase 2. C-level agent definiti
 
 ## Authentication & Cost Model
 
-**NEVER use raw API billing. Always use subscription plans.**
+**NEVER use raw API billing. No API keys are configured. All auth is subscription-based.**
 
-All agents run on Matthew's fixed-cost subscription plans:
-
-| Auth Method | Subscription | Used By |
+| Provider | Auth | Subscription |
 |---|---|---|
-| Anthropic setup-token (`claude setup-token`) | Claude Max ($200/mo) | CEO, C-level sub-agents, ACP Claude Code workers |
-| Codex OAuth (`openclaw onboard --auth-choice openai-codex`) | Codex Pro | CEO (fallback), C-level sub-agents, ACP Codex workers |
-| Gemini CLI OAuth | Gemini (matthew@chainsafe.io) | ACP Gemini workers |
+| Anthropic | Setup-token (from `claude setup-token`) | Claude Max |
+| OpenAI | Codex OAuth | Codex Pro |
+| Google | Gemini CLI OAuth (matthew@chainsafe.io) | Gemini |
 
-ACP task agents inherit CLI auth directly — when acpx spawns Claude Code, it runs the `claude` binary with whatever subscription auth is logged in. Same for `codex` and `gemini`.
+This is the only auth available. Every layer of the org uses it:
+- CEO + C-level sub-agents → same setup-token + OAuth
+- ACP task agents → inherit CLI auth directly (acpx runs the `claude`/`codex`/`gemini` binary with whatever subscription is logged in)
 
-C-level OpenClaw sub-agents share the CEO's auth (setup-token + OAuth). No separate credentials needed.
-
-**If a subscription token expires**, re-auth:
+**If a subscription token expires**, re-auth the subscription:
 - Anthropic: `claude setup-token` → `openclaw models auth paste-token --provider anthropic`
 - Codex: `openclaw models auth login --provider openai-codex`
 
