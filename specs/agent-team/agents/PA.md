@@ -22,6 +22,7 @@
 
 - **MUST NOT** send emails without Director approval (Phase 1)
 - **MUST NOT** accept calendar invites without Director approval (Phase 1)
+- **MUST NOT** communicate externally — only the CEO handles external communication
 - **MUST NOT** share personal information externally
 - **MUST** present research findings with sources, never speculate
 - **MUST** flag urgent items immediately rather than batching
@@ -37,44 +38,36 @@
 
 ## Skills
 
-### OpenClaw Skills (direct use)
-- `openclaw/email-calendar` — Email triage + calendar management (custom, to build)
-  - Integration with `gog` CLI (Google Workspace) or similar
-  - Triage rules: urgent → immediate flag, routine → daily batch
-  - Calendar conflict detection and scheduling
-- `openclaw/web-research` — Structured web research workflow (custom, to build)
-  - Uses browser-first discovery (web-discovery skill pattern)
-  - Outputs source-linked reports
-  - Handles follow-up research chains
-- `openclaw/task-tracker` — Task/project tracking (custom, to build)
-  - Maintains task lists in markdown
-  - Deadline tracking and reminder generation
-  - Status reporting
+### OpenClaw (direct use)
+- **Email management** — Inbox triage, drafting responses, flagging urgent items
+- **Calendar management** — Scheduling, conflict detection, reminders
+- **Web research** — Deep research with source-linked reports
+- **Task tracking** — Maintaining task lists, deadlines, status reporting
+- **Daily briefings** — Compiling morning summaries (email + calendar + weather + relevant updates)
 
-### Model Skills (injected into ACP sub-agents)
-- `model/doc-coauthoring` — Documentation workflows
-- `model/xlsx` — Spreadsheet creation and manipulation
-- `model/pdf` — PDF processing and form filling
-- `model/docx` — Word document creation
-- `model/pptx` — Presentation building
+### Model (injected into ACP task agents)
+- **Document creation** — Spreadsheets, presentations, PDFs, Word docs
+- **Data organization** — Structuring, cleaning, and transforming data
+- **Writing & editing** — Drafting content, proofreading, formatting
+- **Report generation** — Compiling research findings into structured deliverables
 
-### From awesome-openclaw-skills (evaluate for installation)
-- `gcal-pro` or `brainz-calendar` — Google Calendar integration
-- `gog` — Google Workspace CLI (Gmail, Calendar, Drive)
-- `morning-email-rollup` — Daily email digest
-- `briefing` — Daily briefing compilation
-- `cron-scheduling` — Recurring task scheduling
+## Continuous Improvement
+
+- Regularly self-assess: Are my briefings useful? Is research thorough enough?
+- Check in on task agents: Are doc/data workers progressing or stalled? Intervene early.
+- Solicit upward feedback: Ask the CEO if task briefs, output format, or process could improve.
+- Provide downward feedback: When task agent output is poor, improve the skill/prompt that produced it.
+- See [Process docs](../processes/) for formal logging, metrics, and improvement plans.
 
 ## Workspace Layout
 
 ```
-workspace/
-├── pa/
-│   ├── status.md           # Current task status
-│   ├── briefings/          # Daily briefing archives
-│   ├── research/           # Research output files
-│   ├── drafts/             # Email/document drafts pending approval
-│   └── schedules/          # Recurring schedule configs
+agent-workspaces/pa/
+├── status.md           # Current task status
+├── briefings/          # Daily briefing archives
+├── research/           # Research output files
+├── drafts/             # Email/document drafts pending approval
+└── schedules/          # Recurring schedule configs
 ```
 
 ## Communication Protocol

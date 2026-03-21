@@ -28,6 +28,7 @@
 - **MUST** create backups before modifying system files
 - **MUST** use `trash` over `rm` for recoverable operations
 - **MUST** test fixes in isolation before applying to live system
+- **MUST NOT** communicate externally — only the CEO handles external communication
 
 ## Sub-Agent Team (ACP workers)
 
@@ -39,53 +40,39 @@
 
 ## Skills
 
-### OpenClaw Skills (direct use)
-- `openclaw/systematic-debugging` — Iron law: root cause before fix
-- `openclaw/openclaw-internals` — OpenClaw source navigation, config, debugging (custom, to build)
-  - Key file locations in the openclaw repo
-  - Configuration schema reference
-  - Common error patterns and their causes
-  - Gateway lifecycle and session management
-  - Plugin system architecture
-  - How to build from source, run tests
-- `openclaw/linux-admin` — System administration for Ubuntu 24.04 (custom, to build)
-  - systemd service management
-  - Log analysis (journalctl, /tmp/openclaw/*.log)
-  - Resource monitoring (disk, memory, CPU)
-  - Package management (apt, pnpm)
-  - Network diagnostics (tailscale, ports, connectivity)
+### OpenClaw (direct use)
+- **Systematic debugging** — Root cause analysis before any fixes, evidence-based diagnosis
+- **OpenClaw internals** — Source navigation, config debugging, gateway lifecycle, plugin architecture
+- **Linux system administration** — Service management, log analysis, resource monitoring, networking
+- **Web research** — Searching for error messages, checking upstream issues, reading docs
+- **Sub-agent orchestration** — Spawning debuggers, patchers, and sys admin workers
 
-### Model Skills (injected into ACP sub-agents)
-- `model/tdd-workflow` — TDD for all fixes
-- `model/verification-before-completion` — Evidence before claims
-- `model/receiving-code-review` — Handle review feedback on patches
-- `model/git-operations` — Advanced git workflows (custom, to build)
-  - Cherry-picking from feature branches
-  - Rebasing and conflict resolution
-  - Building from source workflow
-  - Managing local patches on top of upstream
-  - Worktree management for parallel fixes
+### Model (injected into ACP sub-agents)
+- **Test-driven development** — Write test, watch fail, write minimal fix, verify
+- **Verification** — Evidence that the fix works before claiming completion
+- **Code review handling** — Receiving and responding to review feedback on patches
+- **Git operations** — Cherry-picking, rebasing, conflict resolution, worktree management
+- **Brainstorming & design** — Exploring approaches before committing to a fix
+- **Build from source** — Compiling, patching, managing local modifications on top of upstream
+- **Security hardening** — Vulnerability scanning, credential management, access controls
 
-### References (shared knowledge)
-- `references/openclaw-codebase.md` — Key file locations, architecture
-- `references/debugging-checklist.md` — Systematic debugging steps
+## Continuous Improvement
 
-### From awesome-openclaw-skills (evaluate for installation)
-- `clawdstrike` — Security audit for OpenClaw hosts
-- `emergency-rescue` — Disaster recovery
-- `dependency-audit` — Dependency health checks
-- `agent-hardening` — Input sanitization testing
+- Regularly self-assess: Am I diagnosing correctly? Are my fixes clean and well-tested?
+- Check in on task agents: Are debuggers/patchers progressing or stalled? Intervene early.
+- Solicit upward feedback: Ask the CEO if task briefs, context, or process could improve.
+- Provide downward feedback: When task agent output is poor, improve the skill/prompt that produced it.
+- See [Process docs](../processes/) for formal logging, metrics, and improvement plans.
 
 ## Workspace Layout
 
 ```
-workspace/
-├── mechanic/
-│   ├── status.md           # Current task status
-│   ├── changelog.md        # All changes made, timestamped
-│   ├── diagnostics/        # Diagnostic reports
-│   ├── patches/            # Patch files and notes
-│   └── backups/            # Pre-change backups
+agent-workspaces/mechanic/
+├── status.md           # Current task status
+├── changelog.md        # All changes made, timestamped
+├── diagnostics/        # Diagnostic reports
+├── patches/            # Patch files and notes
+└── backups/            # Pre-change backups
 ```
 ## Communication Protocol
 

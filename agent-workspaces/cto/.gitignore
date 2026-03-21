@@ -1,0 +1,5 @@
+# CTO agent workspace - transient work artifacts
+# Tracked items go in specs/ or skills/, not here
+*
+!.gitignore
+!README.md

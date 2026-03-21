@@ -4,7 +4,7 @@
 
 1. **Self-sufficiency** — Every agent researches before asking. No laziness, no delegation of lookups up the chain.
 2. **Layered delegation** — CEO → C-level (persistent) → task agents (one-shot). Each level manages its own sub-agents.
-3. **Minimal context, maximum impact** — Agent markdown files are lean and actionable. No bloat.
+3. **Minimal context, maximum impact** — Agent markdown files are lean and actionable. No bloat, but full-featured enough to achieve the goals.
 4. **Iterative improvement** — Every agent is measured, reviewed, and improved continuously.
 5. **Safe by default** — External artifacts go through quarantine. Destructive operations require approval gates.
 
@@ -47,10 +47,10 @@ Director (Matthew — human, sets strategy, approves key decisions)
 
 ### Phase 2: Multi-agent routing (future)
 
-Use OpenClaw's native multi-agent routing (`agents.list` + `bindings`) to give C-levels fully isolated agents with their own workspaces, auth, and session stores.
+Use OpenClaw's native multi-agent routing (`agents.list` + `bindings`) to give C-levels fully isolated agents with their own session stores and dedicated workspaces under `agent-workspaces/`. Auth is shared from the CEO — no separate bot accounts needed.
 
-**Pros:** True isolation, per-agent skills, independent operation.
-**Cons:** Requires config changes, separate bot accounts per channel agent, more complex setup.
+**Pros:** True isolation, per-agent skills, independent operation, dedicated session stores.
+**Cons:** Requires config changes, more complex setup.
 
 ### Design Principle
 
@@ -81,63 +81,93 @@ Skills are split into three layers:
 - **Model skills** (`skills/model/`) — Injected into ACP task agents at spawn time. Pure coding/filesystem instructions. No OpenClaw tool references.
 - **References** (`skills/references/`) — Shared knowledge (codebase maps, conventions, checklists). Either layer can pull from these.
 
+Skills are listed by **capability** (what the agent needs to be able to do), not by specific tool/repo names. Specific implementations will be researched and built/sourced as needed.
+
 ### CEO Skills (OpenClaw)
-- All existing workspace skills (web-discovery, asset-pipeline, audio-transcription, etc.)
-- Orchestration: spawning C-levels, routing tasks, channel communication
-- Skill routing: assembles the right model skills + references for each spawn
+- **Team orchestration** — Spawning C-levels, routing tasks, composing skill+reference bundles for spawns
+- **Channel communication** — Messaging across Telegram, Discord, and other surfaces
+- **Web research** — Browser-driven discovery and URL content extraction
+- **Asset creation** — Image/audio/video generation and delivery
+- **Scheduling & cron** — Recurring tasks, reminders, heartbeat management
+- **Security gatekeeping** — Quarantine inspection, approval workflows, external artifact safety
 
 ### CTO Skills
 **OpenClaw (direct use):**
-- `openclaw/subagent-driven-development` — Core orchestration pattern
-- `openclaw/requesting-code-review` — Dispatch code reviews
-- `openclaw/dispatching-parallel-agents` — Parallel task execution
-- `openclaw/tech-lead` — CTO-specific orchestration, team management (custom, to build)
+- **Sub-agent orchestration** — Spawning, tracking, and reviewing work from ACP task agents
+- **Code review dispatch** — Sending code to reviewers, collecting and synthesizing feedback
+- **Parallel task management** — Running multiple task agents concurrently on independent work
+- **Web research** — Investigating libraries, APIs, docs, RFCs, and technical approaches
+- **Technical decision-making** — Evaluating tradeoffs, recording architecture decisions
 
 **Model (injected into ACP task agents):**
-- `model/writing-plans` — Implementation planning
-- `model/brainstorming` — Design before implementation
-- `model/executing-plans` — Plan execution framework
-- `model/finishing-a-development-branch` — Branch completion workflow
-- `model/using-git-worktrees` — Workspace isolation
-- `model/frontend-design` — Frontend UI creation
-- `model/webapp-testing` — Testing with Playwright
-- `model/mcp-builder` — MCP server development
-- `model/tdd-workflow` — TDD methodology
-- `model/verification-before-completion` — Evidence before claims
+- **Implementation planning** — Breaking requirements into ordered, testable steps
+- **Brainstorming & design** — Exploring approaches before committing to code
+- **Plan execution** — Following a plan step-by-step with verification at each stage
+- **Branch management** — Starting, finishing, and cleaning up feature branches
+- **Git worktrees** — Isolated workspaces for parallel branch work
+- **Frontend development** — UI/UX implementation (React, Next.js, CSS, accessibility)
+- **Backend development** — API design, server logic, database interactions
+- **Testing** — TDD workflow, integration tests, E2E with Playwright
+- **Code review handling** — Receiving and responding to review feedback thoughtfully
+- **Verification** — Proving work is complete with evidence before claiming done
+- **CI/CD & DevOps** — Docker, pipelines, deployment configs, infrastructure as code
 
 ### PA Skills
 **OpenClaw (direct use):**
-- `openclaw/email-calendar` — Email triage + calendar management (custom, to build)
-- `openclaw/web-research` — Deep web research workflow (custom, to build)
-- `openclaw/task-tracker` — Task/project tracking (custom, to build)
+- **Email management** — Inbox triage, drafting responses, flagging urgent items
+- **Calendar management** — Scheduling, conflict detection, reminders
+- **Web research** — Deep research with source-linked reports
+- **Task tracking** — Maintaining task lists, deadlines, status reporting
+- **Daily briefings** — Compiling morning summaries (email + calendar + weather + relevant updates)
 
 **Model (injected into ACP task agents):**
-- `model/doc-coauthoring` — Documentation assistance
-- `model/xlsx` — Spreadsheet management
-- `model/pdf` — PDF processing
-- `model/docx` — Word document creation
-- `model/pptx` — Presentation creation
+- **Document creation** — Spreadsheets, presentations, PDFs, Word docs
+- **Data organization** — Structuring, cleaning, and transforming data
+- **Writing & editing** — Drafting content, proofreading, formatting
+- **Report generation** — Compiling research findings into structured deliverables
 
 ### Mechanic Skills
 **OpenClaw (direct use):**
-- `openclaw/systematic-debugging` — Root cause analysis methodology
-- `openclaw/openclaw-internals` — OpenClaw source navigation, config, debugging (custom, to build)
-- `openclaw/linux-admin` — System administration, service management (custom, to build)
+- **Systematic debugging** — Root cause analysis before any fixes, evidence-based diagnosis
+- **OpenClaw internals** — Source navigation, config debugging, gateway lifecycle, plugin architecture
+- **Linux system administration** — Service management, log analysis, resource monitoring, networking
+- **Web research** — Searching for error messages, checking upstream issues, reading docs
+- **Sub-agent orchestration** — Spawning debuggers, patchers, and sys admin workers
 
 **Model (injected into ACP task agents):**
-- `model/tdd-workflow` — TDD for fixes
-- `model/verification-before-completion` — Evidence before claims
-- `model/receiving-code-review` — Handle review feedback
-- `model/git-operations` — Cherry-pick, rebase, branch management (custom, to build)
+- **Test-driven development** — Write test, watch fail, write minimal fix, verify
+- **Verification** — Evidence that the fix works before claiming completion
+- **Code review handling** — Receiving and responding to review feedback on patches
+- **Git operations** — Cherry-picking, rebasing, conflict resolution, worktree management
+- **Brainstorming & design** — Exploring approaches before committing to a fix
+- **Build from source** — Compiling, patching, managing local modifications on top of upstream
+- **Security hardening** — Vulnerability scanning, credential management, access controls
 
 ### References (shared, all layers)
-- `references/openclaw-codebase.md` — Key file locations, architecture, common patterns
-- `references/project-conventions.md` — Code style, commit messages, PR process
-- `references/debugging-checklist.md` — Systematic debugging steps
+- **OpenClaw codebase** — Key file locations, architecture, common patterns and error signatures
+- **Project conventions** — Code style, commit messages, PR process, branch naming
+- **Debugging checklist** — Systematic debugging steps applicable across all agents
 
-### Shared Skills (all C-levels, OpenClaw layer)
-- **safe-download-and-read** — Quarantine-based artifact inspection
-- **skill-development** — Creating/improving skills
+### Shared Capabilities (all C-levels)
+- **Safe artifact inspection** — Quarantine-based review of external/web-sourced content
+- **Skill development** — Creating and improving skills through research-first methodology
+- **Continuous improvement** — Self-assessment, performance tracking, process refinement (see Process docs)
+
+## Continuous Improvement (all levels)
+
+Every level of the hierarchy is responsible for:
+
+1. **Self-improvement** — Observe own performance, identify weaknesses, iterate on approach
+2. **Direct report check-ins** — Regularly verify tasks are progressing, not stalled or blocked
+3. **Upward feedback** — Direct reports should flag when their manager's process, briefs, or instructions could be improved
+4. **Downward feedback** — Managers provide actionable feedback to direct reports on output quality and process
+
+This creates improvement feedback loops in both directions:
+- **Director ↔ CEO** — Matthew flags what MEK can do better; MEK proposes process improvements to Matthew
+- **CEO ↔ C-levels** — CEO reviews C-level output quality; C-levels flag unclear briefs or missing context
+- **C-levels ↔ Task agents** — C-levels assess task agent output; patterns of poor output lead to skill/prompt improvements
+
+Formal logging, metric collection, improvement plans, and implementation through agent/skill updates are documented in the [Process docs](processes/).
 
 ## Communication Protocol
 
@@ -150,7 +180,7 @@ Skills are split into three layers:
 - Use `sessions_send` to persistent OpenClaw sub-agent sessions
 - Include task context, expected deliverables, and priority
 - Inject relevant OpenClaw skills at session creation
-- C-levels report back with structured updates
+- C-levels reviews results, processes and filters and documents them before reporting back with structured updates
 
 ### C-level → Task Agents
 - Use `sessions_spawn` with `runtime="acp"`, `mode="run"`
@@ -168,6 +198,7 @@ Skills are split into three layers:
 
 ### Approval Gates (Phase 1)
 - All destructive host operations require Director approval
+- C-Level are never to communicate externally, only the CEO does external communication
 - External communications (email, social) require Director approval  
 - Package installations require CEO or Director approval
 - Git push operations require CEO or Director approval
@@ -178,6 +209,14 @@ Skills are split into three layers:
 - PA: email send permissions
 
 ### Data Boundaries
-- C-levels do NOT have access to MEMORY.md or personal context
-- C-levels share the main workspace but operate in designated subdirectories
-- Task agents get only the context they need (principle of least privilege)
+- C-levels may access personal context (MEMORY.md, USER.md, etc.) as needed for their role
+- C-levels MUST NOT expose personal/sensitive information externally — only the CEO handles external communication
+- C-levels can read from the main workspace but primarily operate/write in their designated subdirectories under `agent-workspaces/`
+- Task agents get only the context they need (principle of least privilege and cost mitigation)
+
+### Agent Workspaces
+- Each C-level gets a dedicated workspace: `agent-workspaces/{cto,mechanic,pa}/`
+- Workspaces live under the CEO's workspace tree so the CEO has full visibility
+- Auth is shared from the CEO — no separate credentials per agent
+- Each workspace has its own `.gitignore` for transient work artifacts
+- Durable outputs (specs, skills, decisions) should be promoted to the main workspace tree
