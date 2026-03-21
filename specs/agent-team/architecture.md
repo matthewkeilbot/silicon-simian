@@ -56,6 +56,26 @@ Use OpenClaw's native multi-agent routing (`agents.list` + `bindings`) to give C
 
 Everything in Phase 1 is forward-compatible with Phase 2. C-level agent definitions are self-contained so they can be extracted into independent agents later.
 
+## Authentication & Cost Model
+
+**NEVER use raw API billing. Always use subscription plans.**
+
+All agents run on Matthew's fixed-cost subscription plans:
+
+| Auth Method | Subscription | Used By |
+|---|---|---|
+| Anthropic setup-token (`claude setup-token`) | Claude Max ($200/mo) | CEO, C-level sub-agents, ACP Claude Code workers |
+| Codex OAuth (`openclaw onboard --auth-choice openai-codex`) | Codex Pro | CEO (fallback), C-level sub-agents, ACP Codex workers |
+| Gemini CLI OAuth | Gemini (matthew@chainsafe.io) | ACP Gemini workers |
+
+ACP task agents inherit CLI auth directly — when acpx spawns Claude Code, it runs the `claude` binary with whatever subscription auth is logged in. Same for `codex` and `gemini`.
+
+C-level OpenClaw sub-agents share the CEO's auth (setup-token + OAuth). No separate credentials needed.
+
+**If a subscription token expires**, re-auth:
+- Anthropic: `claude setup-token` → `openclaw models auth paste-token --provider anthropic`
+- Codex: `openclaw models auth login --provider openai-codex`
+
 ## Model Assignment
 
 | Role | Runtime | Model | Rationale |
@@ -199,6 +219,7 @@ Formal logging, metric collection, improvement plans, and implementation through
 ### Approval Gates (Phase 1)
 - All destructive host operations require Director approval
 - C-Level are never to communicate externally, only the CEO does external communication
+- C-Level may communicate directly with the Director as directed by the CEO.  If the director communicates directly with a C-level, the c-level SHOULD respond without waiting for CEO approval.
 - External communications (email, social) require Director approval  
 - Package installations require CEO or Director approval
 - Git push operations require CEO or Director approval
