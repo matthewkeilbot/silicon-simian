@@ -125,7 +125,7 @@ The agent definition files are living documents. Refinement triggers:
 | Implement improvements | Weekly (batch small fixes) | CEO |
 | Skill reviews | Bi-weekly | CEO + external model review |
 | Full agent assessment | Monthly | CEO |
-| Architecture review | Quarterly | CEO + CTO |
+| Architecture review | Quarterly | CEO + CTO + Director |
 
 ## External Review Process
 

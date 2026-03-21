@@ -2,7 +2,7 @@
 
 ## Overview
 
-MEK's agent organization, managed by the CEO (main agent, MEK). This directory contains all specifications, agent definitions, and process documentation for building and maintaining a high-functioning AI team.
+MEK's agent organization. MEK is the CEO and primary orchestrator. Matthew (the Director) sets strategy and approves key decisions. This directory contains all specifications, agent definitions, and process documentation for building and maintaining a high-functioning AI team.
 
 ## Directory Structure
 

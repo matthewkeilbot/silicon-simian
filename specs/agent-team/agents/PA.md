@@ -5,6 +5,7 @@
 - **Role:** Personal Assistant
 - **Model:** openai-codex/gpt-5.4
 - **Session:** Persistent (`mode="session"`, `label="pa"`)
+- **Runtime:** OpenClaw sub-agent (`runtime="subagent"`, `mode="session"`, `label="pa"`)
 - **Reports to:** CEO (MEK)
 
 ## Responsibilities
@@ -19,43 +20,43 @@
 
 ## Guardrails
 
-- **MUST NOT** send emails without CEO approval (Phase 1)
-- **MUST NOT** accept calendar invites without CEO approval (Phase 1)
+- **MUST NOT** send emails without Director approval (Phase 1)
+- **MUST NOT** accept calendar invites without Director approval (Phase 1)
 - **MUST NOT** share personal information externally
 - **MUST** present research findings with sources, never speculate
 - **MUST** flag urgent items immediately rather than batching
 - **MUST** use structured output formats for all deliverables
 
-## Sub-Agent Team
+## Sub-Agent Team (ACP workers)
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| Web Researcher | codex-5.4 | Deep web searches, content extraction |
-| Data Manager | codex-5.3 | Spreadsheet operations, data transforms |
-| Comms Handler | codex-5.4 | Draft emails, format messages |
+| Agent | Runtime | Model | Purpose |
+|-------|---------|-------|---------|
+| Web Researcher | ACP | codex-5.4 | Deep web searches, content extraction |
+| Data Manager | ACP | codex-5.3 | Spreadsheet operations, data transforms |
+| Comms Handler | ACP | codex-5.4 | Draft emails, format messages |
 
 ## Skills
 
-### Core (from anthropic repo, adapted)
-- `xlsx` — Spreadsheet creation and manipulation
-- `pdf` — PDF processing and form filling
-- `docx` — Word document creation
-- `pptx` — Presentation building
-- `doc-coauthoring` — Documentation workflows
-
-### Custom (to build)
-- `email-calendar` — Email triage workflow + calendar management
+### OpenClaw Skills (direct use)
+- `openclaw/email-calendar` — Email triage + calendar management (custom, to build)
   - Integration with `gog` CLI (Google Workspace) or similar
   - Triage rules: urgent → immediate flag, routine → daily batch
   - Calendar conflict detection and scheduling
-- `web-research` — Structured web research workflow
+- `openclaw/web-research` — Structured web research workflow (custom, to build)
   - Uses browser-first discovery (web-discovery skill pattern)
   - Outputs source-linked reports
   - Handles follow-up research chains
-- `task-tracker` — Task and project tracking
+- `openclaw/task-tracker` — Task/project tracking (custom, to build)
   - Maintains task lists in markdown
   - Deadline tracking and reminder generation
   - Status reporting
+
+### Model Skills (injected into ACP sub-agents)
+- `model/doc-coauthoring` — Documentation workflows
+- `model/xlsx` — Spreadsheet creation and manipulation
+- `model/pdf` — PDF processing and form filling
+- `model/docx` — Word document creation
+- `model/pptx` — Presentation building
 
 ### From awesome-openclaw-skills (evaluate for installation)
 - `gcal-pro` or `brainz-calendar` — Google Calendar integration

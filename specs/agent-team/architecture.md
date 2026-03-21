@@ -11,110 +11,151 @@
 ## Team Structure
 
 ```
-CEO (MEK - main agent)
-├── CTO (persistent session)
-│   ├── Frontend Dev (one-shot, per task)
-│   ├── Backend Dev (one-shot, per task)
-│   ├── Code Reviewer (one-shot, per task)
-│   ├── Infra/DevOps (one-shot, per task)
-│   └── Architect (one-shot, per task)
-├── PA (persistent session)
-│   ├── Web Researcher (one-shot, per task)
-│   ├── Data Manager (one-shot, per task)
-│   └── Comms Handler (one-shot, per task)
-└── Mechanic (persistent session)
-    ├── Debugger (one-shot, per task)
-    ├── Patcher (one-shot, per task)
-    └── Sys Admin (one-shot, per task)
+Director (Matthew — human, sets strategy, approves key decisions)
+└── CEO (MEK — OpenClaw main agent, orchestrator)
+    ├── CTO — OpenClaw sub-agent (persistent)
+    │   ├── Frontend Dev — ACP (codex-5.4)
+    │   ├── Backend Dev — ACP (codex-5.4)
+    │   ├── Code Reviewer — ACP (gemini-3-pro)
+    │   ├── Infra/DevOps — ACP (codex-5.4)
+    │   └── Architect — ACP (opus)
+    ├── PA — OpenClaw sub-agent (persistent)
+    │   ├── Web Researcher — ACP (codex-5.4)
+    │   ├── Data Manager — ACP (codex-5.3)
+    │   └── Comms Handler — ACP (codex-5.4)
+    └── Mechanic — OpenClaw sub-agent (persistent)
+        ├── Debugger — ACP (opus)
+        ├── Patcher — ACP (codex-5.3)
+        └── Sys Admin — ACP (codex-5.4)
 ```
+
+### Runtime Layers
+
+- **Director (Matthew):** Human. Strategy, approvals, final authority.
+- **CEO (MEK):** OpenClaw main agent. Orchestrates C-levels, owns communication channels, routes skills and references to sub-agents.
+- **C-level agents:** OpenClaw sub-agents (`runtime="subagent"`, `mode="session"`). Full tool access — `exec`, `web_fetch`, `browser`, `sessions_spawn`, `message`. Can do their own web research, spawn ACP workers with model selection, and communicate back to channels.
+- **Task agents:** ACP sessions (`runtime="acp"`, `mode="run"`). Pure model workers with native filesystem and terminal access. Spawned by C-levels for specific tasks. Disposable — they get injected with model skills + references and return results.
 
 ## Implementation Approach
 
-### Option A: Sub-agent sessions (current focus)
+### Phase 1: Sub-agent sessions (current focus)
 
-Use `sessions_spawn` with `mode="session"` for C-levels and `mode="run"` for task agents. This keeps everything within the main agent's session tree.
+- C-levels: `sessions_spawn` with `runtime="subagent"`, `mode="session"` — persistent OpenClaw sub-agents with full tool access
+- Task agents: C-levels use `sessions_spawn` with `runtime="acp"`, `mode="run"` — one-shot model workers with filesystem/terminal access
+- CEO injects model skills + references into C-level agent context at spawn time
+- C-levels inject relevant model skills + references into ACP task prompts
 
-**Pros:** Simple, no config changes, works within existing auth.
-**Cons:** Depends on gateway sub-agent spawning (currently broken — pairing bug).
+### Phase 2: Multi-agent routing (future)
 
-### Option B: Multi-agent routing (future)
-
-Use OpenClaw's native multi-agent routing (`agents.list` + `bindings`) to create fully isolated agents with their own workspaces, auth, and session stores.
+Use OpenClaw's native multi-agent routing (`agents.list` + `bindings`) to give C-levels fully isolated agents with their own workspaces, auth, and session stores.
 
 **Pros:** True isolation, per-agent skills, independent operation.
 **Cons:** Requires config changes, separate bot accounts per channel agent, more complex setup.
 
-### Recommended Path
+### Design Principle
 
-Start with **Option A** (sub-agent sessions) once the gateway pairing bug is fixed. Design everything to be forward-compatible with Option B so we can migrate C-levels to fully isolated agents later.
-
-For now, C-level agents will be spawned as persistent sessions from the CEO with rich agent markdown context. Their task agents will be one-shot spawns from the C-level session.
+Everything in Phase 1 is forward-compatible with Phase 2. C-level agent definitions are self-contained so they can be extracted into independent agents later.
 
 ## Model Assignment
 
-| Role | Model | Rationale |
-|------|-------|-----------|
-| CEO (MEK) | anthropic/claude-opus-4-6 | Strategic thinking, orchestration, personality |
-| CTO | anthropic/claude-opus-4-6 | Architecture decisions, complex reasoning |
-| PA | openai-codex/gpt-5.4 | Efficient for routine tasks, cost-effective |
-| Mechanic | anthropic/claude-opus-4-6 | Deep debugging, system understanding |
-| Frontend Dev | openai-codex/gpt-5.4 | Code generation, fast iteration |
-| Backend Dev | openai-codex/gpt-5.4 | Code generation |
-| Code Reviewer | google-gemini-cli/gemini-3.1-pro-preview | Fresh perspective, model diversity |
-| Infra/DevOps | openai-codex/gpt-5.4 | Infrastructure code |
-| Debugger | anthropic/claude-opus-4-6 | Root cause analysis needs deep reasoning |
-| Patcher | openai-codex/gpt-5.3-codex | Straightforward code fixes |
-| Web Researcher | openai-codex/gpt-5.4 | Efficient search and synthesis |
+| Role | Runtime | Model | Rationale |
+|------|---------|-------|-----------|
+| Director (Matthew) | Human | — | Strategy, approvals, final authority |
+| CEO (MEK) | OpenClaw main | anthropic/claude-opus-4-6 | Orchestration, communication, personality |
+| CTO | OpenClaw sub-agent | anthropic/claude-opus-4-6 | Architecture decisions, complex reasoning |
+| PA | OpenClaw sub-agent | openai-codex/gpt-5.4 | Efficient for routine tasks, cost-effective |
+| Mechanic | OpenClaw sub-agent | anthropic/claude-opus-4-6 | Deep debugging, system understanding |
+| Frontend Dev | ACP | openai-codex/gpt-5.4 | Code generation, fast iteration |
+| Backend Dev | ACP | openai-codex/gpt-5.4 | Code generation |
+| Code Reviewer | ACP | google-gemini-cli/gemini-3-pro-preview | Fresh perspective, model diversity |
+| Infra/DevOps | ACP | openai-codex/gpt-5.4 | Infrastructure code |
+| Debugger | ACP | anthropic/claude-opus-4-6 | Root cause analysis needs deep reasoning |
+| Patcher | ACP | openai-codex/gpt-5.3-codex | Straightforward code fixes |
+| Web Researcher | ACP | openai-codex/gpt-5.4 | Efficient search and synthesis |
 
 ## Skill Distribution
 
-### CTO Skills (workspace: per-agent or shared)
-- **superpowers/subagent-driven-development** — Core orchestration pattern
-- **superpowers/writing-plans** — Implementation planning
-- **superpowers/brainstorming** — Design before implementation
-- **superpowers/requesting-code-review** — Dispatch code reviews
-- **superpowers/dispatching-parallel-agents** — Parallel task execution
-- **superpowers/executing-plans** — Plan execution framework
-- **superpowers/finishing-a-development-branch** — Branch completion workflow
-- **superpowers/using-git-worktrees** — Workspace isolation
-- **anthropic/frontend-design** — Frontend UI creation
-- **anthropic/webapp-testing** — Testing with Playwright
-- **anthropic/mcp-builder** — MCP server development
-- **Custom: tech-lead** — CTO-specific orchestration, team management
+Skills are split into three layers:
+
+- **OpenClaw skills** (`skills/openclaw/`) — Used by the CEO and C-level OpenClaw sub-agents directly. Reference OpenClaw tools (`exec`, `browser`, `message`, `web_fetch`, `sessions_spawn`, etc.).
+- **Model skills** (`skills/model/`) — Injected into ACP task agents at spawn time. Pure coding/filesystem instructions. No OpenClaw tool references.
+- **References** (`skills/references/`) — Shared knowledge (codebase maps, conventions, checklists). Either layer can pull from these.
+
+### CEO Skills (OpenClaw)
+- All existing workspace skills (web-discovery, asset-pipeline, audio-transcription, etc.)
+- Orchestration: spawning C-levels, routing tasks, channel communication
+- Skill routing: assembles the right model skills + references for each spawn
+
+### CTO Skills
+**OpenClaw (direct use):**
+- `openclaw/subagent-driven-development` — Core orchestration pattern
+- `openclaw/requesting-code-review` — Dispatch code reviews
+- `openclaw/dispatching-parallel-agents` — Parallel task execution
+- `openclaw/tech-lead` — CTO-specific orchestration, team management (custom, to build)
+
+**Model (injected into ACP task agents):**
+- `model/writing-plans` — Implementation planning
+- `model/brainstorming` — Design before implementation
+- `model/executing-plans` — Plan execution framework
+- `model/finishing-a-development-branch` — Branch completion workflow
+- `model/using-git-worktrees` — Workspace isolation
+- `model/frontend-design` — Frontend UI creation
+- `model/webapp-testing` — Testing with Playwright
+- `model/mcp-builder` — MCP server development
+- `model/tdd-workflow` — TDD methodology
+- `model/verification-before-completion` — Evidence before claims
 
 ### PA Skills
-- **anthropic/doc-coauthoring** — Documentation assistance
-- **anthropic/xlsx** — Spreadsheet management
-- **anthropic/pdf** — PDF processing
-- **anthropic/docx** — Word document creation
-- **anthropic/pptx** — Presentation creation
-- **Custom: email-calendar** — Email triage, calendar management (adapted from community)
-- **Custom: web-research** — Deep web research workflow
-- **Custom: task-tracker** — Task/project tracking
+**OpenClaw (direct use):**
+- `openclaw/email-calendar` — Email triage + calendar management (custom, to build)
+- `openclaw/web-research` — Deep web research workflow (custom, to build)
+- `openclaw/task-tracker` — Task/project tracking (custom, to build)
+
+**Model (injected into ACP task agents):**
+- `model/doc-coauthoring` — Documentation assistance
+- `model/xlsx` — Spreadsheet management
+- `model/pdf` — PDF processing
+- `model/docx` — Word document creation
+- `model/pptx` — Presentation creation
 
 ### Mechanic Skills
-- **superpowers/systematic-debugging** — Root cause analysis methodology
-- **superpowers/verification-before-completion** — Evidence before claims
-- **superpowers/test-driven-development** — TDD for fixes
-- **superpowers/receiving-code-review** — Handle review feedback
-- **Custom: openclaw-internals** — OpenClaw source navigation, config, debugging
-- **Custom: linux-admin** — System administration, service management
-- **Custom: git-operations** — Cherry-pick, rebase, branch management
+**OpenClaw (direct use):**
+- `openclaw/systematic-debugging` — Root cause analysis methodology
+- `openclaw/openclaw-internals` — OpenClaw source navigation, config, debugging (custom, to build)
+- `openclaw/linux-admin` — System administration, service management (custom, to build)
 
-### Shared Skills (all agents)
+**Model (injected into ACP task agents):**
+- `model/tdd-workflow` — TDD for fixes
+- `model/verification-before-completion` — Evidence before claims
+- `model/receiving-code-review` — Handle review feedback
+- `model/git-operations` — Cherry-pick, rebase, branch management (custom, to build)
+
+### References (shared, all layers)
+- `references/openclaw-codebase.md` — Key file locations, architecture, common patterns
+- `references/project-conventions.md` — Code style, commit messages, PR process
+- `references/debugging-checklist.md` — Systematic debugging steps
+
+### Shared Skills (all C-levels, OpenClaw layer)
 - **safe-download-and-read** — Quarantine-based artifact inspection
-- **skill-development** — Creating/improving skills (adapted from anthropic/skill-creator)
+- **skill-development** — Creating/improving skills
 
 ## Communication Protocol
 
+### Director → CEO
+- Direct chat (Telegram MEK group, gateway terminal)
+- Strategic direction, approvals, feedback
+- CEO executes autonomously within approved scope
+
 ### CEO → C-level
-- Use `sessions_send` to persistent sessions
-- Include task context, expected deliverables, and deadline
+- Use `sessions_send` to persistent OpenClaw sub-agent sessions
+- Include task context, expected deliverables, and priority
+- Inject relevant OpenClaw skills at session creation
 - C-levels report back with structured updates
 
 ### C-level → Task Agents
-- Use `sessions_spawn` with `mode="run"` 
-- Include full task specification in the spawn task
+- Use `sessions_spawn` with `runtime="acp"`, `mode="run"`
+- Inject relevant model skills + references into the task prompt
+- Select model based on task requirements (opus for reasoning, codex for code, gemini for review)
 - Task agent does work and returns result
 - C-level reviews result before reporting up
 
@@ -126,10 +167,10 @@ For now, C-level agents will be spawned as persistent sessions from the CEO with
 ## Security Model
 
 ### Approval Gates (Phase 1)
-- All destructive host operations require CEO approval
-- External communications (email, social) require CEO approval  
-- Package installations require CEO approval
-- Git push operations require CEO approval
+- All destructive host operations require Director approval
+- External communications (email, social) require Director approval  
+- Package installations require CEO or Director approval
+- Git push operations require CEO or Director approval
 
 ### Elevated Access (Future, per Matthew's approval)
 - Mechanic: host-level access for system repairs

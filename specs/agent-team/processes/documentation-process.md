@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Instrument the agent team so the CEO can gauge performance, identify bottlenecks, and make data-driven improvement decisions. Documentation is not bureaucracy — it's the CEO's eyes and ears.
+Instrument the agent team so the CEO (MEK) and Director (Matthew) can gauge performance, identify bottlenecks, and make data-driven improvement decisions. Documentation is not bureaucracy — it's the organization's eyes and ears.
 
 ## What Gets Measured
 
@@ -101,7 +101,7 @@ Decisions go to `specs/agent-team/logs/decisions.md`.
 
 ## Instrumentation Rules
 
-1. **The CEO documents, not the agents** — C-levels report status; the CEO records evaluations. This prevents self-grading bias.
+1. **The CEO documents, agents report** — C-levels report status; the CEO records evaluations. The Director reviews when needed. This prevents self-grading bias.
 2. **Lightweight over thorough** — A one-line task log entry is better than no entry. Don't let documentation become a bottleneck.
 3. **Honest assessments** — "Poor" quality is a useful signal, not a punishment. Track it.
 4. **Patterns over incidents** — One failure is noise. Three failures in the same area is a signal that needs action.
