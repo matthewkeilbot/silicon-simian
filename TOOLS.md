@@ -91,15 +91,19 @@ Validated in MEK topic 302 on 2026-03-07 for PNG/JPG.
 
 Use the dedicated skill: `skills/playwright-screenshot/SKILL.md`
 
-## Available Models (verified 2026-03-20)
+## Available Models (verified 2026-03-21)
 
 | Alias | Full ID | Use Case |
 |-------|---------|----------|
 | opus | anthropic/claude-opus-4-6 | Strategic thinking, complex reasoning, CEO/CTO level |
-| codex-5.3 | openai-codex/gpt-5.3-codex | Code implementation, grunt work |
-| codex-5.4 | openai-codex/gpt-5.4 | Code review, efficient reasoning |
-| gemini-pro | google-gemini-cli/gemini-3.1-pro-preview | Review, second opinions, diversity |
+| sonnet | anthropic/claude-sonnet-4-6 | Balanced reasoning, everyday tasks, good cost/perf |
+| haiku | anthropic/claude-haiku-4-5 | Cheap/fast tasks, cron jobs, simple scripts |
+| — | openai-codex/gpt-5.3-codex | Code implementation, grunt work |
+| — | openai-codex/gpt-5.4 | Code review, efficient reasoning |
+| — | google-gemini-cli/gemini-3-pro-preview | Review, second opinions, diversity |
 
+Primary: anthropic/claude-opus-4-6
+Fallbacks: openai-codex/gpt-5.4, google-gemini-cli/gemini-3-pro-preview
 Auth: Anthropic (token), OpenAI Codex (oauth), Google Gemini (oauth, matthew@chainsafe.io)
 
 ## Anti-Laziness Principle (from Matthew, 2026-03-20)
