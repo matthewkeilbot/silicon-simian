@@ -104,9 +104,9 @@ Use the dedicated skill: `skills/playwright-screenshot/SKILL.md`
 
 Primary: anthropic/claude-opus-4-6
 Fallbacks: openai-codex/gpt-5.4, google-gemini-cli/gemini-3-pro-preview
-Auth: Anthropic (setup-token), OpenAI Codex (OAuth), Google Gemini (OAuth, matthew@chainsafe.io)
+Auth: Anthropic (setup-token), OpenAI Codex (OAuth), Google Gemini (OAuth)
 
-⚠️ **No API keys exist. All auth is subscription-only. Never create or use API keys.**
+⚠️ **NEVER use raw API billing. ALWAYS use subscription plans. Never create or use API keys.**
 - Anthropic: Claude Max subscription via setup-token
 - OpenAI: Codex Pro subscription via OAuth
 - Google: Gemini CLI OAuth
