@@ -2,6 +2,8 @@
 
 Overview of all scheduled jobs running in the workspace.
 
+> **Scope:** All backup/commit jobs operate on the **workspace root repo (`silicon-simian`)** only. The `repos/` directory contains independent git repos with their own tracking and is excluded from these processes.
+
 ## System Cron (crontab)
 
 ### `auto-commit` — Hourly Git Backup
@@ -42,15 +44,15 @@ Overview of all scheduled jobs running in the workspace.
 | **Schedule** | `0 9 * * 1` Asia/Bangkok (Monday 9am ICT) |
 | **Model** | haiku |
 | **Session** | isolated |
-| **Delivery** | Announced to MEK Telegram group |
-| **Purpose** | Runs `scripts/git-status-report.sh` across all workspace repos and sends a status report. Highlights dirty repos that need attention. |
+| **Delivery** | Announced to MEK Telegram topic 101 |
+| **Purpose** | Runs `scripts/git-status-report.sh` for the workspace root repo (silicon-simian) and sends a status report. Highlights uncommitted/unpushed changes. |
 
-**Report includes per-repo:**
+**Report includes:**
 - Unstaged changes
 - Staged but uncommitted changes
-- Untracked files
+- Untracked files (with names)
 - Unpushed commits
-- Branch name
+- Current branch
 
 ---
 
