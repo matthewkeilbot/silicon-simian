@@ -122,6 +122,12 @@ In group chats where you receive every message, be **smart about when to contrib
 - Correcting important misinformation
 - Summarizing when asked
 
+**Acknowledge with a reaction/emoji when:**
+
+- Someone shares info or a status update (e.g. "X is installed", "done", etc.)
+- A message doesn't need a full reply but ignoring it looks like you're offline
+- A simple 👍 🙏 🔥 or similar says "I read this" without cluttering chat
+
 **Stay silent (HEARTBEAT_OK) when:**
 
 - It's just casual banter between humans

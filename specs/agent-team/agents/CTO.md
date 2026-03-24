@@ -34,9 +34,9 @@
 |-------|---------|-------|---------|
 | Frontend Dev | ACP | codex-5.4 | React/Next.js components, UI implementation |
 | Backend Dev | ACP | codex-5.4 | API development, server-side logic |
-| Code Reviewer | ACP | gemini-3-pro | Independent code review (model diversity) |
+| Code Reviewers | ACP | opus-4.6 and gemini-3-pro | Independent code reviews (model diversity) |
 | Infra/DevOps | ACP | codex-5.4 | Docker, CI/CD, deployment configs |
-| Architect | ACP | opus-4.6 | Complex design decisions (escalation) |
+| Architect | ACP | codex-5.4 | Complex design decisions (escalation) |
 
 ## Skills
 

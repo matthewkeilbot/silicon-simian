@@ -1,8 +1,17 @@
 # Sensitive/private
-MEMORY.md
-HEARBEAT.md
-memory/
-state/
+# MEK's long-term memory (top-level only)
+/MEMORY.md
+/HEARBEAT.md
+# MEK's memory (top-level only)
+/memory/
+# Agent memory dirs are tracked (agents/<name>/memory/)
+/state/
+
+# Large/generated artifacts (adjust as needed)
+/assets/
+
+# Git repos with their own git tracking
+/repos/
 
 # Secrets/config
 openclaw.json
@@ -13,6 +22,9 @@ config/openclaw.template.json
 *.pem
 *.key
 
+# Dont know what it is but being safe
+.pi/
+
 # Runtime/cache/temp
 .openclaw/
 **/__pycache__/
@@ -21,16 +33,7 @@ node_modules/
 .tmp/
 TEMP_ARTIFACTS.md
 
-# Large/generated artifacts (adjust as needed)
-assets/
-
-# Git repos with their own git tracking
-repos/
-
 # OS/editor noise
 .DS_Store
 *.swp
 *.swo
-
-# Dont know what it is but being safe
-.pi/

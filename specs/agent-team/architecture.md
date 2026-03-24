@@ -54,7 +54,7 @@ Use OpenClaw's native multi-agent routing (`agents.list` + `bindings`) to give C
 
 ### Design Principle
 
-Everything in Phase 1 is forward-compatible with Phase 2. C-level agent definitions are self-contained so they can be extracted into independent agents later.
+Everything in Phase 1 is forward-compatible with Phase 2. C-level agent definitions are self-contained under `agents/<agent>/` so they can be extracted into independent agents later.
 
 ## Authentication & Cost Model
 
@@ -230,12 +230,23 @@ Formal logging, metric collection, improvement plans, and implementation through
 ### Data Boundaries
 - C-levels may access personal context (MEMORY.md, USER.md, etc.) as needed for their role
 - C-levels MUST NOT expose personal/sensitive information externally — only the CEO handles external communication
-- C-levels can read from the main workspace but primarily operate/write in their designated subdirectories under `agent-workspaces/`
+- C-levels can read from the main workspace but primarily operate/write in their designated directory under `agents/<agent>/`
 - Task agents get only the context they need (principle of least privilege and cost mitigation)
 
-### Agent Workspaces
-- Each C-level gets a dedicated workspace: `agent-workspaces/{cto,mechanic,pa}/`
-- Workspaces live under the CEO's workspace tree so the CEO has full visibility
+### Agent Directories
+- Each C-level gets a self-contained directory: `agents/{cto,mechanic,pa}/`
+- Structure per agent:
+  ```
+  agents/<agent>/
+    PERSONA.md    ← Canonical prompt, passed verbatim at spawn (git-tracked)
+    README.md     ← Agent notes: model, capabilities, usage (git-tracked)
+    memory/       ← Agent continuity files, daily logs, MEMORY.md (git-tracked)
+    workspace/    ← Runtime scratch, transient artifacts (gitignored)
+  ```
+- `PERSONA.md` is the single source of truth for the agent's base prompt — what you see = what they get
+- Task-specific instructions are appended at spawn time, not baked into the persona
+- `memory/` follows the same pattern as MEK's memory (daily files + curated MEMORY.md)
+- `workspace/` is ephemeral per session — gitignored via `agents/.gitignore`
+- Personas and memory are version controlled so improvements are tracked over time
 - Auth is shared from the CEO — no separate credentials per agent
-- Each workspace has its own `.gitignore` for transient work artifacts
 - Durable outputs (specs, skills, decisions) should be promoted to the main workspace tree
