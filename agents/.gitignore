@@ -1,2 +1,5 @@
 # Runtime scratch dirs are not tracked
 */workspace/
+
+# Agent memory is sensitive — blocked by pre-commit hook too
+*/memory/
