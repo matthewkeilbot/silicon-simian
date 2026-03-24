@@ -25,6 +25,9 @@ config/openclaw.template.json
 # Dont know what it is but being safe
 .pi/
 
+# Logs
+/logs/
+
 # Runtime/cache/temp
 .openclaw/
 **/__pycache__/
