@@ -10,8 +10,12 @@ cd "$WORKSPACE"
 branch=$(git branch --show-current 2>/dev/null || echo "detached")
 unstaged=$(git diff --stat 2>/dev/null | tail -1)
 staged=$(git diff --cached --stat 2>/dev/null | tail -1)
-untracked_files=$(git ls-files --others --exclude-standard 2>/dev/null)
-untracked_count=$(echo "$untracked_files" | grep -c . 2>/dev/null || echo 0)
+untracked_files=$(git ls-files --others --exclude-standard 2>/dev/null || true)
+if [ -z "$untracked_files" ]; then
+  untracked_count=0
+else
+  untracked_count=$(echo "$untracked_files" | wc -l)
+fi
 unpushed=$(git log --oneline @{upstream}..HEAD 2>/dev/null | wc -l)
 
 REPORT="📊 Git Status Report — silicon-simian ($branch)\n"
