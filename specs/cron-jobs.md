@@ -47,12 +47,14 @@ Overview of all scheduled jobs running in the workspace.
 | **Delivery** | Announced to MEK Telegram topic 101 |
 | **Purpose** | Runs `scripts/git-status-report.sh` for the workspace root repo (silicon-simian) and sends a status report. Highlights uncommitted/unpushed changes. |
 
-**Report includes:**
-- Unstaged changes
-- Staged but uncommitted changes
-- Untracked files (with names)
-- Unpushed commits
-- Current branch
+**Report format — high-level inventory of repo root:**
+- Tracked Files (root-level files managed by git)
+- Untracked Files (root-level files not in git, notes if gitignored)
+- Tracked Folders (root-level dirs with git-tracked content)
+- Untracked Folders (root-level dirs not in git, notes if gitignored)
+- Pending Changes (uncommitted/unpushed summary if any)
+
+**Future:** S3 backup report will mirror this format, and the two will be reconciled for 100% coverage verification.
 
 ---
 

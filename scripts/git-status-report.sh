@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# git-status-report.sh — Report git status for the workspace root repo (silicon-simian)
-# This intentionally ignores repos/ subdirectories — those have their own tracking.
+# git-status-report.sh — Weekly inventory of tracked vs untracked at workspace root
+# Scope: silicon-simian repo only (not repos/ subdirectories)
 set -euo pipefail
 
 WORKSPACE="${HOME}/.openclaw/workspace"
@@ -8,55 +8,96 @@ LOG="${WORKSPACE}/logs/git-status-report.log"
 cd "$WORKSPACE"
 
 branch=$(git branch --show-current 2>/dev/null || echo "detached")
-unstaged=$(git diff --stat 2>/dev/null | tail -1)
-staged=$(git diff --cached --stat 2>/dev/null | tail -1)
-untracked_files=$(git ls-files --others --exclude-standard 2>/dev/null || true)
-if [ -z "$untracked_files" ]; then
-  untracked_count=0
-else
-  untracked_count=$(echo "$untracked_files" | wc -l)
-fi
-unpushed=$(git log --oneline @{upstream}..HEAD 2>/dev/null | wc -l)
 
-REPORT="📊 Git Status Report — silicon-simian ($branch)\n"
-REPORT+="$(date -u '+%F %H:%M UTC')\n"
-REPORT+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-
-has_issues=false
-
-if [ -n "$unstaged" ]; then
-  REPORT+="⚠️ Unstaged changes: $unstaged\n"
-  has_issues=true
-fi
-
-if [ -n "$staged" ]; then
-  REPORT+="📦 Staged (uncommitted): $staged\n"
-  has_issues=true
-fi
-
-if [ "$untracked_count" -gt 0 ]; then
-  REPORT+="❓ Untracked files ($untracked_count):\n"
-  echo "$untracked_files" | head -20 | while IFS= read -r f; do
-    REPORT+="   • $f\n"
-  done
-  if [ "$untracked_count" -gt 20 ]; then
-    REPORT+="   ... and $((untracked_count - 20)) more\n"
+# Get all root-level items
+all_files=()
+all_dirs=()
+for item in * .*; do
+  [ "$item" = "." ] || [ "$item" = ".." ] || [ "$item" = ".git" ] && continue
+  if [ -d "$item" ]; then
+    all_dirs+=("$item")
+  elif [ -f "$item" ]; then
+    all_files+=("$item")
   fi
-  has_issues=true
+done
+
+# Check what git tracks (any file under a dir = dir is tracked)
+tracked_files=()
+untracked_files=()
+for f in "${all_files[@]}"; do
+  if git ls-files --error-unmatch "$f" &>/dev/null; then
+    tracked_files+=("$f")
+  elif git check-ignore -q "$f" 2>/dev/null; then
+    untracked_files+=("$f (gitignored)")
+  else
+    untracked_files+=("$f")
+  fi
+done
+
+tracked_dirs=()
+untracked_dirs=()
+for d in "${all_dirs[@]}"; do
+  # A dir is "tracked" if git knows about any file inside it
+  if [ -n "$(git ls-files "$d/" 2>/dev/null | head -1)" ]; then
+    tracked_dirs+=("$d/")
+  elif git check-ignore -q "$d" 2>/dev/null; then
+    untracked_dirs+=("$d/ (gitignored)")
+  else
+    # Could have untracked files not yet added
+    untracked_dirs+=("$d/")
+  fi
+done
+
+# Build report
+R=""
+R+="### \`silicon-simian\` Git Status Report\n"
+R+="Branch: \`$branch\` | $(date -u '+%F %H:%M UTC')\n\n"
+
+R+="#### Tracked Files\n"
+if [ ${#tracked_files[@]} -eq 0 ]; then
+  R+="_None_\n"
+else
+  for f in "${tracked_files[@]}"; do R+="• $f\n"; done
 fi
 
-if [ "$unpushed" -gt 0 ]; then
-  REPORT+="🔺 Unpushed commits: $unpushed\n"
-  has_issues=true
+R+="\n#### Untracked Files\n"
+if [ ${#untracked_files[@]} -eq 0 ]; then
+  R+="_None_\n"
+else
+  for f in "${untracked_files[@]}"; do R+="• $f\n"; done
 fi
 
-if ! $has_issues; then
-  REPORT+="✅ All clean — nothing uncommitted or unpushed.\n"
+R+="\n#### Tracked Folders\n"
+if [ ${#tracked_dirs[@]} -eq 0 ]; then
+  R+="_None_\n"
+else
+  for d in "${tracked_dirs[@]}"; do R+="• $d\n"; done
 fi
 
-# Log it
+R+="\n#### Untracked Folders\n"
+if [ ${#untracked_dirs[@]} -eq 0 ]; then
+  R+="_None_\n"
+else
+  for d in "${untracked_dirs[@]}"; do R+="• $d\n"; done
+fi
+
+# Dirty status summary
+unstaged=$(git diff --stat 2>/dev/null | tail -1)
+unpushed=$(git log --oneline @{upstream}..HEAD 2>/dev/null | wc -l)
+new_untracked=$(git ls-files --others --exclude-standard 2>/dev/null | wc -l || echo 0)
+
+if [ -n "$unstaged" ] || [ "$unpushed" -gt 0 ] || [ "$new_untracked" -gt 0 ]; then
+  R+="\n#### ⚠️ Pending Changes\n"
+  [ -n "$unstaged" ] && R+="• Uncommitted: $unstaged\n"
+  [ "$unpushed" -gt 0 ] && R+="• Unpushed commits: $unpushed\n"
+  [ "$new_untracked" -gt 0 ] && R+="• New untracked files: $new_untracked\n"
+else
+  R+="\n✅ All clean — nothing uncommitted or unpushed.\n"
+fi
+
+# Log
 mkdir -p "$(dirname "$LOG")"
-echo -e "$REPORT" >> "$LOG"
+echo -e "$R" >> "$LOG"
 
 # Output
-echo -e "$REPORT"
+echo -e "$R"
