@@ -5,6 +5,7 @@ This document is written for both human reviewers and agent implementers (🤖).
 
 ## Why this exists
 A memory system for agents has to solve a paradox:
+- maintain context across sessions so you are still you when starting a new session or thread
 - remember enough to stay coherent over long timelines,
 - but inject little enough context to stay fast, cheap, and accurate.
 
