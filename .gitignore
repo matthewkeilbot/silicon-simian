@@ -40,3 +40,6 @@ TEMP_ARTIFACTS.md
 .DS_Store
 *.swp
 *.swo
+
+# Product idea artifacts (private)
+products/
