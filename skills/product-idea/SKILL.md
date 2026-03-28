@@ -1,14 +1,15 @@
 ---
-name: vision-refinement
+name: product-idea
 description: >
-  Interactive 10-stage product vision refinement process that transforms a raw app idea
+  Interactive 10-stage product idea refinement process that transforms a raw app idea
   into a complete pre-PRD foundation. Walk through vision extraction, personas, problem
   definition, user journeys, features, NFRs, constraints, architecture, data model, and
   risk analysis — producing durable artifacts at each stage. Use when: (1) starting a new
   product/app idea from scratch, (2) user wants to flesh out or formalize a product concept,
-  (3) user says "new product", "app idea", "vision refinement", "pre-PRD", "product definition",
-  (4) user opens a thread to brainstorm a product. NOT for: existing PRDs that need editing,
-  pure technical architecture without product context, or post-PRD implementation planning.
+  (3) user says "I have a product idea", "new product", "app idea", "product idea",
+  "vision refinement", "pre-PRD", "product definition", (4) user opens a thread to
+  brainstorm a product. NOT for: existing PRDs that need editing, pure technical
+  architecture without product context, or post-PRD implementation planning.
 ---
 
 # Vision Refinement
