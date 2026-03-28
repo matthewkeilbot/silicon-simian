@@ -2,21 +2,21 @@
 name: product-idea
 description: >
   Interactive 10-stage product idea refinement process that transforms a raw app idea
-  into a complete pre-PRD foundation. Walk through vision extraction, personas, problem
+  into a complete Product Foundation. Walk through vision extraction, personas, problem
   definition, user journeys, features, NFRs, constraints, architecture, data model, and
   risk analysis — producing durable artifacts at each stage. Use when: (1) starting a new
   product/app idea from scratch, (2) user wants to flesh out or formalize a product concept,
   (3) user says "I have a product idea", "new product", "app idea", "product idea",
-  "vision refinement", "pre-PRD", "product definition", (4) user opens a thread to
-  brainstorm a product. NOT for: existing PRDs that need editing, pure technical
-  architecture without product context, or post-PRD implementation planning.
+  "vision refinement", "product definition", (4) user opens a thread to brainstorm a
+  product. NOT for: existing product specs that need editing, pure technical architecture
+  without product context, or post-spec implementation planning.
 ---
 
-# Product Idea → Pre-PRD Foundation
+# Product Idea → Product Foundation
 
-Interactive 10-stage workflow that transforms a raw product idea into a structured pre-PRD
-foundation. Each stage is a focused conversation producing a durable artifact. The complete
-set forms the foundation for PRD authoring, technical specs, and AI-assisted implementation.
+Interactive 10-stage workflow that transforms a raw product idea into a structured Product
+Foundation. Each stage is a focused conversation producing a durable artifact. The complete
+set forms the foundation for technical specs and AI-assisted implementation.
 
 ## Quick Start
 
@@ -184,6 +184,6 @@ If the conversation is interrupted or continued later:
 After all 10 stages and the final audit:
 
 1. Generate `README.md` — index with one-line summaries of each artifact plus completion metadata (date, audit results, open questions).
-2. Inform the user that the pre-PRD foundation is complete.
-3. Note that these artifacts form the foundation for: PRD authoring, technical specs, and AI-assisted implementation.
+2. Inform the user that the Product Foundation is complete.
+3. Note that these artifacts form the foundation for: technical specs and AI-assisted implementation.
 4. When a product repo is created, use gstack's `/office-hours` → `/autoplan` pipeline for implementation planning. The artifacts from this skill feed directly into that workflow.
