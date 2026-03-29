@@ -8,6 +8,7 @@
 ## Sync From Upstream
 
 - gstack
+- paperclip
 
 ## Push Changes
 
