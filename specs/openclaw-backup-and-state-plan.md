@@ -159,11 +159,11 @@ These files live in S3 and are used by the backup/restore process. Documented he
 | S3 key | Local path | Purpose |
 |---|---|---|
 | `backup-registry.json` | `~/.openclaw/backup-registry.json` | Source of truth for what gets backed up where. See schema above. |
-| `workspace/repos/repos.json` | `~/.openclaw/workspace/repos/repos.json` | Manifest of git repos to clone on restore. |
+| `workspace/repos.json` | `~/.openclaw/workspace/repos.json` | Manifest of git repos to clone on restore. |
 
 ### repos.json schema
 
-**Location:** `~/.openclaw/workspace/repos/repos.json` (inside the gitignored `repos/` directory, synced to S3)
+**Location:** `~/.openclaw/workspace/repos.json` (gitignored, synced to S3)
 
 ```json
 {
@@ -310,7 +310,7 @@ Cron runs the parent script hourly.
    - Downloads `backup-registry.json` from S3 → `~/.openclaw/backup-registry.json`
    - Walks all S3 objects, restores to `~/.openclaw/<key>`
    - Skips files that already match (hash check)
-   - Downloads `workspace/repos/repos.json`, clones all repos with correct remotes/upstreams
+   - Downloads `workspace/repos.json`, clones all repos with correct remotes/upstreams
 7. Set git hooks: `cd ~/.openclaw/workspace && git config core.hooksPath .githooks`
 8. Verify with `openclaw status`
 
@@ -355,7 +355,7 @@ The workspace `README.md` must document:
 - **S3 path structure:** Mirrors `~/.openclaw/` exactly. S3 key = path relative to `~/.openclaw/`. No prefix mapping.
 - **Orphaned S3 objects:** When a file is deleted locally, the sync script places a delete marker on the S3 object. S3 versioning preserves all prior versions. Delete markers expire after 365 days via lifecycle rule.
 - **Large file threshold:** 100 MB. Files above this are still uploaded but flagged in the run log and reported in daily digest.
-- **Repo manifest:** `repos/repos.json` in workspace (inside gitignored `repos/` dir), synced to S3. Contains repo origin URLs, branches, upstreams, and `folderName` for clone targets.
+- **Repo manifest:** `workspace/repos.json` (gitignored, synced to S3). Contains repo origin URLs, branches, upstreams, and `folderName` for clone targets.
 - **S3 lifecycle rule:** Non-current versions expire after 365 days. Incomplete multipart uploads aborted after 7 days. Applied 2026-03-29.
 - **Logging/reporting:** See `specs/daily-and-weekly-digest.md` for the full reporting pipeline. All backup scripts write JSONL logs. Daily + weekly digests aggregate and deliver to control plane.
 - **Error escalation:** Critical errors write escalation marker files. Heartbeat picks them up and posts to MEK control plane. Stack traces captured verbatim.
