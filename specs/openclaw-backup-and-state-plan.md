@@ -275,7 +275,7 @@ One TypeScript script. No LLM involvement. Runs via cron. Deterministic.
 
 The sync runs in two phases. Phase 2 (deletions) only executes if Phase 1 (uploads) completes fully.
 
-#### Phase 1 — Upload (must fully succeed)
+#### Phase 1 — Upload (best effort, track failures)
 
 ```
 1. Load backup-registry.json (local copy — authoritative)
@@ -292,26 +292,27 @@ The sync runs in two phases. Phase 2 (deletions) only executes if Phase 1 (uploa
       - If in S3 and hash differs → PutObject with ChecksumAlgorithm: SHA256
       - If in S3 and hash matches → skip
    d. If resolved via inheritance (no own entry) → also write escalation
-5. If ANY upload fails → abort entire run. No Phase 2. Write error to run log.
+5. If a file upload fails → log the error, continue with remaining files.
+   Track failures. Any failure blocks Phase 2 (deletions) but not remaining uploads.
 ```
 
-#### Phase 2 — Delete markers (only after Phase 1 succeeds)
+#### Phase 2 — Delete markers (only if Phase 1 had zero failures)
 
 ```
-1. List all S3 objects under the bot prefix
-2. Compare against local paths seen in Phase 1
-3. Safety checks before ANY delete markers:
-   a. Minimum file count: if local scan found <50% of S3 object count → 
+1. If Phase 1 had ANY upload failures or read errors → skip Phase 2 entirely
+2. List all S3 objects under the bot prefix
+3. Compare against local paths seen in Phase 1
+4. Safety checks before ANY delete markers:
+   a. Minimum file count: if local scan found <90% of S3 object count → 
       abort deletions + escalate "possible scan failure"
-   b. Deletion ratio cap: if >20% of S3 objects would be deleted in this run → 
+   b. Deletion ratio cap: if >10% of S3 objects would be deleted in this run → 
       abort deletions + escalate "abnormal deletion volume"
    c. Read error exclusion: any S3 prefixes corresponding to directories that 
       had read errors in Phase 1 → exclude from deletion entirely
-4. If all safety checks pass → place delete markers (DeleteObject) for orphaned S3 objects
-5. Log all deletions in run log
+5. If all safety checks pass → place delete markers (DeleteObject) for orphaned S3 objects
 ```
 
-#### Phase 3 — Local pruning (only after Phase 1 succeeds)
+#### Phase 3 — Local pruning (only if Phase 1 had zero failures)
 
 ```
 1. For each registry entry with pruneMaxDays set:
@@ -393,7 +394,6 @@ The sync script writes JSONL logs to `~/.openclaw/workspace/logs/backup/`. One f
     "files_scanned": 142,
     "files_uploaded": 3,
     "files_skipped": 139,
-    "files_deleted": 0,
     "files_pruned": 2,
     "bytes_uploaded": 28400,
     "large_files_flagged": 0,
@@ -531,7 +531,7 @@ The workspace `README.md` must document:
 - **Backup registry:** Local copy is authoritative. S3 copy is just a backup. Three-state model (`github`/`s3`/`ignored`) with runtime-only inheritance for unknown paths. Map-based schema for O(1) lookup.
 - **Unknown paths:** Resolved at runtime via parent walk, never persisted as `unknown`. Escalation written on every run until formal entry added. Root default: `s3`, no pruning.
 - **S3 path structure:** Bot-specific prefix + mirror of `~/.openclaw/`. Prefix configured per bot in README.md.
-- **Two-phase sync:** Phase 1 (uploads) must fully succeed before Phase 2 (delete markers). Safety checks: minimum file count (50%), deletion ratio cap (20%), read-error prefix exclusion.
+- **Two-phase sync:** Phase 1 (uploads) is best-effort — continues on individual failures but tracks them. Phase 2 (delete markers) only runs if Phase 1 had zero failures. Safety checks: minimum file count (90%), deletion ratio cap (10%), read-error prefix exclusion.
 - **Pruning safety:** Local files only pruned after confirming they exist in S3 with matching checksum. Pruning uses mtime for age calculation.
 - **No checksum fallback:** Objects without checksums are always re-uploaded with `ChecksumAlgorithm: SHA256`. Self-heals over time.
 - **Delete markers:** Placed only after successful full upload pass + safety checks. S3 versioning preserves all prior versions. Delete markers expire after 365 days via lifecycle rule.
