@@ -301,22 +301,23 @@ Cron runs the parent script hourly.
 
 ### From scratch (new host)
 
-1. Install OpenClaw + Node.js
+1. Install OpenClaw
 2. Clone workspace repo: `git clone git@github.com:matthewkeilbot/silicon-simian.git ~/.openclaw/workspace`
 3. Follow `README.md` in the repo (which documents next steps)
 4. Install AWS CLI and configure profile `matthewkeilbot`
-5. `cd ~/.openclaw/workspace && npm install` (install TS dependencies)
-6. Run restore script: `npx tsx scripts/restore.ts`
+5. Run restore script: `scripts/restore.sh`
+   - Pure bash + `aws s3api` — no Node.js/npm required (works on bare machine)
    - Downloads `backup-registry.json` from S3 → `~/.openclaw/backup-registry.json`
    - Walks all S3 objects, restores to `~/.openclaw/<key>`
    - Skips files that already match (hash check)
    - Downloads `workspace/repos.json`, clones all repos with correct remotes/upstreams
+6. Install Node.js, then `cd ~/.openclaw/workspace && npm install` (for ongoing TS sync scripts)
 7. Set git hooks: `cd ~/.openclaw/workspace && git config core.hooksPath .githooks`
 8. Verify with `openclaw status`
 
 ### Partial restore
 
-- Restore specific paths: `npx tsx scripts/restore.ts --path credentials/`
+- Restore specific paths: `scripts/restore.sh --path credentials/`
 - Point-in-time: Use S3 console or `aws s3api list-object-versions` to retrieve prior versions
 
 ### README.md requirements
@@ -342,7 +343,7 @@ The workspace `README.md` must document:
 7. Add `package.json` + `tsconfig.json` for TypeScript scripts
 8. Write `scripts/s3-sync.ts` — the core sync script (reads registry, hashes, uploads, delete markers, unknown path handling, escalations, pruning, JSONL logging)
 9. Write `scripts/backup.sh` — thin bash orchestrator (git + TS sync)
-10. Write `scripts/restore.ts` — pull from S3 to local + clone repos from manifest
+10. Write `scripts/restore.sh` — pure bash restore (works on bare machine with only AWS CLI)
 11. Update `README.md` with restore instructions and S3 artifact reference
 12. Set up hourly cron via `openclaw cron`
 13. Test: run backup, verify S3 contents, test restore to temp dir
