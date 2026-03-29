@@ -123,7 +123,7 @@ Logs get uploaded as part of the regular S3 sync (they live in backed-up paths).
 |---|---|---|
 | Per-run logs (`backup/`, `email/`, etc.) | **Deleted after aggregation into daily digest** | Versioned (12 months via lifecycle) |
 | Daily digests | **Deleted after aggregation into weekly digest** | Versioned |
-| Weekly digests | 1 year | Versioned |
+| Weekly digests | **1 month** (deleted the following month) | Versioned |
 
 Per-run logs are ephemeral — once the daily digest script has consumed them and produced the aggregated JSON, the individual JSONL files are deleted locally. They've already been synced to S3 before aggregation (since the sync runs before the digest), so S3 versioning preserves the originals.
 
