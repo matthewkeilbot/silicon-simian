@@ -10,9 +10,8 @@
 # Large/generated artifacts (adjust as needed)
 /assets/
 
-# Git repos with their own git tracking
+# Git repos with their own git tracking (repos.json lives inside here too)
 /repos/
-/repos.json
 
 # Secrets/config
 openclaw.json
