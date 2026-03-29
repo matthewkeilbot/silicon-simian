@@ -8,7 +8,7 @@ Ensure full recoverability after host failure. Two lanes:
 
 A new OpenClaw instance should be able to clone the workspace repo, follow the README, pull state from S3, and be fully operational within minutes.
 
-This spec is designed to be reusable. Any OpenClaw bot can clone the silicon-simian repo, adapt the registry and scripts, and have a working backup system without reinventing the wheel.
+This spec is designed to be reusable. Bot-specific configuration (bucket name, AWS profile, repo URLs) lives in `README.md`, not here. The patterns and scripts are generic.
 
 ---
 
@@ -32,22 +32,31 @@ This spec is designed to be reusable. Any OpenClaw bot can clone the silicon-sim
 - **Encryption:** None client-side; bucket is private, rely on S3 server-side encryption + IAM.
 - **Lifecycle rule (active):** `expire-old-versions-365d` — non-current versions expire after 365 days, incomplete multipart uploads aborted after 7 days.
 
-### S3 path structure
+### S3 namespace
 
-S3 paths **mirror local paths exactly** from `~/.openclaw/` as root. No prefix mapping, no translation. The S3 key for any file is its path relative to `~/.openclaw/`.
+Each bot uses a **bot-specific prefix** in the bucket to avoid collisions if multiple bots share an AWS account/bucket. The prefix is configured in the sync script config (not hardcoded in this spec).
+
+Example for this bot:
+```
+s3://matthewkeilbot/<bot-prefix>/credentials/aws.json
+```
+
+Within the prefix, S3 paths **mirror local paths exactly** from `~/.openclaw/` as root. No additional mapping or translation.
 
 ```
 Local:  ~/.openclaw/credentials/aws.json
-S3 key: credentials/aws.json
+S3 key: <bot-prefix>/credentials/aws.json
 
 Local:  ~/.openclaw/workspace/MEMORY.md
-S3 key: workspace/MEMORY.md
+S3 key: <bot-prefix>/workspace/MEMORY.md
 
 Local:  ~/.openclaw/openclaw.json
-S3 key: openclaw.json
+S3 key: <bot-prefix>/openclaw.json
 ```
 
-This means restore is trivial: download from S3 → write to `~/.openclaw/<key>`.
+Restore is trivial: strip the prefix, write to `~/.openclaw/<remainder>`.
+
+Bot-specific prefix configuration is documented in `README.md`.
 
 ### Lifecycle rule (applied 2026-03-29)
 
@@ -69,26 +78,37 @@ aws --profile matthewkeilbot s3api put-bucket-lifecycle-configuration \
   }'
 ```
 
-Verify: `aws --profile matthewkeilbot s3api get-bucket-lifecycle-configuration --bucket matthewkeilbot`
-
 ---
 
 ## Backup Registry
 
-The backup registry is the single source of truth for what gets backed up where. It lives in S3 (not git) because it may contain sensitive path names.
+The backup registry is the single source of truth for what gets backed up where. The **local copy is always authoritative**. The S3 copy is just a backup — used only during restore.
 
-**Location:** `s3://matthewkeilbot/backup-registry.json` (also kept locally at `~/.openclaw/backup-registry.json`)
+**Location:** Local at `~/.openclaw/backup-registry.json`, backed up to S3.
 
-### Four-state model
+### Three-state model (+transient unknown)
 
-Every path is assigned one of four backup strategies:
+Every path is assigned one of three backup strategies, plus a transient fourth state:
 
 | Value | Git | S3 | Meaning |
 |---|---|---|---|
 | `github` | tracked (not gitignored) | skipped by S3 sync | Git handles backup. |
 | `s3` | gitignored | synced to S3 | S3 handles backup. |
 | `ignored` | gitignored | skipped by S3 sync | Ephemeral, not backed up anywhere. |
-| `unknown` | — | **inherits parent rule** | New path detected. Backed up using parent's rule. Escalation written. Transient — replaced with `github`/`s3`/`ignored` after confirmation. |
+
+The `unknown` state is **never persisted in the registry**. When a new path is discovered:
+1. The sync script resolves the effective rule by walking up parent paths at runtime.
+2. Backs up the new path using the parent's rule (or root default: `s3`).
+3. Writes an escalation file with the new path, inherited parent path, and the rule being applied.
+4. The escalation persists until someone adds a proper entry to the registry.
+5. On subsequent runs, the same inheritance resolution happens until a formal entry exists.
+
+### Root default rule
+
+If inheritance walks all the way to root with no match, the default is:
+- `backup: "s3"`, `pruneMaxDays: null`
+
+This ensures unknown paths are always backed up, never pruned, and always escalated.
 
 ### Registry schema
 
@@ -98,13 +118,21 @@ The registry is a map where each key is a path (relative to `~/.openclaw/`) and 
 {
   "$schema": "backup-registry",
   "version": 1,
-  "updated": "2026-03-29T16:45:00Z",
+  "updated": "2026-03-29T17:30:00Z",
   "entries": {
     "openclaw.json": {
       "backup": "s3",
       "pruneMaxDays": null
     },
     "credentials": {
+      "backup": "s3",
+      "pruneMaxDays": null
+    },
+    "workspace/AGENTS.md": {
+      "backup": "github",
+      "pruneMaxDays": null
+    },
+    "workspace/MEMORY.md": {
       "backup": "s3",
       "pruneMaxDays": null
     },
@@ -128,27 +156,48 @@ The registry is a map where each key is a path (relative to `~/.openclaw/`) and 
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `backup` | `"github"` \| `"s3"` \| `"ignored"` \| `"unknown"` | ✅ | Backup strategy. |
-| `pruneMaxDays` | number \| null | ✅ | Max age in days for local file pruning. `null` = never prune. |
+| `backup` | `"github"` \| `"s3"` \| `"ignored"` | ✅ | Backup strategy. |
+| `pruneMaxDays` | number \| null | ✅ | Max age in days for local file pruning based on mtime. `null` = never prune. |
 
-### Inheritance and unknown path handling
+### Path resolution rules
 
-All folders are expected to eventually have an entry in the registry. Inheritance is only used **transiently** when a new folder appears and hasn't been formally assigned yet.
+1. **O(1) exact match** — look up the full path in the registry map.
+2. **Parent walk** — if no match, walk up path segments until a match or root.
+3. **Root default** — if no parent matches, use `s3` with no pruning.
+4. **Escalation** — any path resolved via inheritance (no own entry) triggers an escalation on every run until a formal entry is added.
 
-When the sync script encounters a path not in the registry:
+### What gets entries
 
-1. **Look up parent paths** by walking up segments (`workspace/memory/foo` → `workspace/memory` → `workspace` → root).
-2. **If a parent has an entry** → use the parent's rule for this sync run.
-3. **Add the new path to the registry** with `"backup": "unknown"` and `"pruneMaxDays": null`.
-4. **Write an escalation** containing:
-   - The new path
-   - The parent path that was inherited from
-   - The parent's backup rule
-   - Suggested action: "Confirm or reassign backup strategy"
-5. Escalation is picked up by heartbeat and posted to MEK control plane.
-6. Once confirmed, the `unknown` entry is updated to `github`/`s3`/`ignored`.
+- **Directories:** Auto-detected. New directories trigger escalation + inheritance.
+- **Root-level files** (`~/.openclaw/*` and `~/.openclaw/workspace/*`): Must have explicit entries. New root-level files also trigger escalation with default `s3` rule.
+- **Files inside subdirectories:** Inherit from their parent directory entry. No explicit entries needed.
 
-**This ensures nothing is ever silently missed.** New folders are always backed up on first detection using the safest available rule (parent's), and the operator gets notified to formalize.
+### Root-level files requiring explicit entries
+
+These files live at the root of `~/.openclaw/` or `~/.openclaw/workspace/` and must each have a registry entry:
+
+**`~/.openclaw/` root:**
+
+| File | Backup | Notes |
+|---|---|---|
+| `openclaw.json` | `s3` | Config with secrets. |
+| `backup-registry.json` | `s3` | This file. Always synced. |
+
+**`~/.openclaw/workspace/` root:**
+
+| File | Backup | Notes |
+|---|---|---|
+| `AGENTS.md` | `github` | Core identity/config. |
+| `SOUL.md` | `github` | Personality. |
+| `USER.md` | `github` | Human info. |
+| `TOOLS.md` | `github` | Local notes. |
+| `IDENTITY.md` | `github` | Bot identity. |
+| `HEARTBEAT.md` | `github` | Heartbeat config. |
+| `BOOTSTRAP.md` | `github` | Bootstrap config. |
+| `MEMORY.md` | `s3` | Private long-term memory. Never prune. |
+| `repos.json` | `s3` | Repo manifest. |
+
+New files appearing at either root level are detected, backed up to S3 (root default), and escalated.
 
 ---
 
@@ -156,9 +205,9 @@ When the sync script encounters a path not in the registry:
 
 These files live in S3 and are used by the backup/restore process. Documented here so any bot setting up from the silicon-simian repo knows what to expect.
 
-| S3 key | Local path | Purpose |
+| S3 key (under bot prefix) | Local path | Purpose |
 |---|---|---|
-| `backup-registry.json` | `~/.openclaw/backup-registry.json` | Source of truth for what gets backed up where. See schema above. |
+| `backup-registry.json` | `~/.openclaw/backup-registry.json` | Source of truth for backup routing. Local copy is authoritative. |
 | `workspace/repos.json` | `~/.openclaw/workspace/repos.json` | Manifest of git repos to clone on restore. |
 
 ### repos.json schema
@@ -187,10 +236,25 @@ These files live in S3 and are used by the backup/restore process. Documented he
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `folderName` | string | ✅ | Directory name under `workspace/repos/`. Used when repo name differs from the clone target. |
+| `folderName` | string | ✅ | Directory name under `workspace/repos/`. |
 | `origin` | string | ✅ | Git remote URL for `origin`. |
 | `branch` | string | ✅ | Default branch to checkout. |
-| `upstream` | string | ❌ | Git remote URL for `upstream` (forks that sync with an upstream source). |
+| `upstream` | string | ❌ | Git remote URL for `upstream` (forks that sync). |
+
+---
+
+## Scan Boundaries
+
+The sync script walks `~/.openclaw/` recursively. The following are **always excluded** from scanning, regardless of registry entries:
+
+| Exclusion | Reason |
+|---|---|
+| `.git/` directories | Managed by git, not file-level backup. |
+| `node_modules/` | Dependency registry caches. Regenerated via `npm install`. |
+| `__pycache__/`, `.venv/`, `venv/` | Python caches/environments. Regenerated. |
+| `.cache/` | Generic caches. Regenerated. |
+| Sockets, pipes, device files | Not regular files. Cannot be backed up. |
+| Symlinks | Stored as-is (not dereferenced). If a symlink's target path is not backed up, an escalation is written noting the dangling reference. No default backup of the target — there's likely a reason it's excluded. |
 
 ---
 
@@ -207,34 +271,63 @@ One TypeScript script. No LLM involvement. Runs via cron. Deterministic.
 - **Hashing:** Node.js `crypto.createHash('sha256')` with file streaming
 - **Logging:** JSONL output via `JSON.stringify` per line
 
-### Algorithm
+### Two-phase algorithm
+
+The sync runs in two phases. Phase 2 (deletions) only executes if Phase 1 (uploads) completes fully.
+
+#### Phase 1 — Upload (must fully succeed)
 
 ```
-1. Load backup-registry.json (local copy, synced from S3)
-2. Scan ~/.openclaw/ for all files and directories
-3. For each path found:
-   a. Look up path in registry map (O(1))
-   b. If no match → walk up parent segments until match or root
-   c. If match found:
-      - "github" or "ignored" → skip
-      - "s3" → sync (see below)
-      - "unknown" → sync using inherited parent rule
-   d. If no match at all (no parent either) → 
-      - Add as "unknown" to registry
-      - Sync to S3 using default "s3" behavior
-      - Write escalation
-4. For "s3" paths:
-   - Compute local SHA-256 (Node crypto stream)
-   - HeadObject with ChecksumMode: ENABLED
-   - If not in S3 → PutObject with ChecksumAlgorithm: SHA256
-   - If in S3 but hash differs → PutObject
-   - If in S3 and hash matches → skip
-5. For each S3 object with no local counterpart:
-   - Place a delete marker (DeleteObject)
-   - S3 versioning preserves all prior versions
-6. Apply pruneMaxDays rules (delete local files exceeding age)
-7. Write JSONL run log
-8. If registry was modified (unknown paths added) → upload updated registry to S3
+1. Load backup-registry.json (local copy — authoritative)
+2. Scan ~/.openclaw/ for all files and directories (respecting scan boundaries)
+3. Track all local paths seen during scan + any directories with read errors
+4. For each path found:
+   a. Resolve backup strategy (exact match → parent walk → root default)
+   b. If "github" or "ignored" → skip
+   c. If "s3" (own entry or inherited):
+      - Compute local SHA-256 (Node crypto stream)
+      - HeadObject with ChecksumMode: ENABLED
+      - If not in S3 → PutObject with ChecksumAlgorithm: SHA256
+      - If in S3 and no ChecksumSHA256 returned → always re-upload with ChecksumAlgorithm: SHA256
+      - If in S3 and hash differs → PutObject with ChecksumAlgorithm: SHA256
+      - If in S3 and hash matches → skip
+   d. If resolved via inheritance (no own entry) → also write escalation
+5. If ANY upload fails → abort entire run. No Phase 2. Write error to run log.
+```
+
+#### Phase 2 — Delete markers (only after Phase 1 succeeds)
+
+```
+1. List all S3 objects under the bot prefix
+2. Compare against local paths seen in Phase 1
+3. Safety checks before ANY delete markers:
+   a. Minimum file count: if local scan found <50% of S3 object count → 
+      abort deletions + escalate "possible scan failure"
+   b. Deletion ratio cap: if >20% of S3 objects would be deleted in this run → 
+      abort deletions + escalate "abnormal deletion volume"
+   c. Read error exclusion: any S3 prefixes corresponding to directories that 
+      had read errors in Phase 1 → exclude from deletion entirely
+4. If all safety checks pass → place delete markers (DeleteObject) for orphaned S3 objects
+5. Log all deletions in run log
+```
+
+#### Phase 3 — Local pruning (only after Phase 1 succeeds)
+
+```
+1. For each registry entry with pruneMaxDays set:
+   - Find local files with mtime older than pruneMaxDays
+   - Only prune files that were successfully synced to S3 in this or a prior run
+     (file must exist in S3 with matching checksum)
+   - Delete local file
+2. Log pruned files in run log
+```
+
+#### Phase 4 — Finalize
+
+```
+1. Write JSONL run log
+2. If registry needs updating (modified locally) → it will be synced to S3 on next run
+   (registry is just another file in the backup set)
 ```
 
 ### Hash strategy — native S3 checksums
@@ -245,8 +338,8 @@ S3 natively supports SHA-256 checksums as a first-class feature:
 ```typescript
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 await s3.send(new PutObjectCommand({
-  Bucket: 'matthewkeilbot',
-  Key: 'credentials/foo.json',
+  Bucket: BUCKET,
+  Key: `${BOT_PREFIX}/${relativePath}`,
   Body: fileStream,
   ChecksumAlgorithm: 'SHA256'
 }));
@@ -256,8 +349,8 @@ await s3.send(new PutObjectCommand({
 ```typescript
 import { HeadObjectCommand } from '@aws-sdk/client-s3';
 const head = await s3.send(new HeadObjectCommand({
-  Bucket: 'matthewkeilbot',
-  Key: 'credentials/foo.json',
+  Bucket: BUCKET,
+  Key: `${BOT_PREFIX}/${relativePath}`,
   ChecksumMode: 'ENABLED'
 }));
 // head.ChecksumSHA256 → base64-encoded SHA-256
@@ -279,19 +372,83 @@ function computeSHA256(filePath: string): Promise<string> {
 }
 ```
 
-Produces identical base64-encoded SHA-256 to what S3 stores. Verified 2026-03-29 using `openssl` equivalent (same algorithm, same encoding).
+Produces identical base64-encoded SHA-256 to what S3 stores. Verified 2026-03-29.
 
-**Fallback:** If an object was uploaded without `ChecksumAlgorithm` (legacy/manual), HeadObject won't return `ChecksumSHA256`. Fall back to size comparison, then re-upload with checksum enabled.
+**No fallback needed:** If an S3 object was uploaded without a checksum, the sync script always re-uploads it with `ChecksumAlgorithm: SHA256`. This self-heals legacy objects over time.
+
+### Log format
+
+The sync script writes JSONL logs to `~/.openclaw/workspace/logs/backup/`. One file per run.
+
+**Filename:** `s3-sync-YYYY-MM-DD-HHMM.jsonl`
+
+**Per-run entry:**
+```json
+{
+  "process": "s3-sync",
+  "timestamp": "2026-03-29T14:00:00Z",
+  "duration_sec": 12,
+  "status": "success",
+  "metrics": {
+    "files_scanned": 142,
+    "files_uploaded": 3,
+    "files_skipped": 139,
+    "files_deleted": 0,
+    "files_pruned": 2,
+    "bytes_uploaded": 28400,
+    "large_files_flagged": 0,
+    "read_errors": 0,
+    "escalations_written": 0
+  },
+  "errors": [],
+  "warnings": [],
+  "large_files": [],
+  "deletions_skipped_reason": null
+}
+```
+
+**Error entry (within `errors` array):**
+```json
+{
+  "file": "credentials/aws.json",
+  "error": "AccessDenied",
+  "message": "Upload failed: 403 Forbidden",
+  "stack": "full stderr / stack trace verbatim",
+  "retries": 3,
+  "resolved": false
+}
+```
+
+### Log retention
+
+| Log type | Local retention | S3 retention |
+|---|---|---|
+| Per-run logs (`logs/backup/`) | 7 days | Versioned (12 months via lifecycle) |
+
+Per-run logs are kept locally for 7 days for debugging, then pruned. They're synced to S3 before pruning (Phase 1 runs before Phase 3).
 
 ### Large file handling
 
-Files >100 MB are still uploaded normally but flagged in the JSONL run log under `large_files`. Reported in the daily digest.
+Files >100 MB are uploaded normally but flagged in the run log `large_files` array and reported in the daily digest. This is informational — no behavioral change, but the operator should know when unusually large files are being backed up.
+
+### Escalation triggers
+
+| Condition | Action |
+|---|---|
+| S3 auth failure (403/401) after retries | Write escalation file |
+| 3+ consecutive run failures | Write escalation file |
+| Script crash with stack trace | Write escalation file |
+| New path discovered (no registry entry) | Write escalation file |
+| Symlink target not in backup set | Write escalation file |
+| Phase 2 safety check tripped | Write escalation file |
+
+Escalation files written to `~/.openclaw/workspace/logs/escalations/`. Heartbeat picks them up (≤30 min latency) and posts to MEK control plane.
 
 ### Parent orchestration script
 
 A thin bash script (`scripts/backup.sh`) that:
 1. Runs `scripts/auto-commit.sh` (git auto-commit + push — Lane A)
-2. Runs `npx tsx scripts/s3-sync.ts` (S3 sync + prune + logging — Lane B)
+2. Runs `npx tsx scripts/s3-sync.ts` (S3 sync — Lane B)
 
 Cron runs the parent script hourly.
 
@@ -303,32 +460,50 @@ Cron runs the parent script hourly.
 
 1. Install OpenClaw
 2. Clone workspace repo: `git clone git@github.com:matthewkeilbot/silicon-simian.git ~/.openclaw/workspace`
-3. Follow `README.md` in the repo (which documents next steps)
-4. Install AWS CLI and configure profile `matthewkeilbot`
+3. Follow `README.md` in the repo (which documents next steps, including bot prefix)
+4. Install AWS CLI and configure profile
 5. Run restore script: `scripts/restore.sh`
-   - Pure bash + `aws s3api` — no Node.js/npm required (works on bare machine)
-   - Downloads `backup-registry.json` from S3 → `~/.openclaw/backup-registry.json`
-   - Walks all S3 objects, restores to `~/.openclaw/<key>`
-   - Skips files that already match (hash check)
-   - Downloads `workspace/repos.json`, clones all repos with correct remotes/upstreams
-6. Install Node.js, then `cd ~/.openclaw/workspace && npm install` (for ongoing TS sync scripts)
-7. Set git hooks: `cd ~/.openclaw/workspace && git config core.hooksPath .githooks`
-8. Verify with `openclaw status`
+   - Pure bash + `aws s3api` — no Node.js/npm required
+   - Downloads `backup-registry.json` from S3
+   - Lists all S3 objects under the bot prefix
+   - Downloads each to `~/.openclaw/<path>` (overwrites local)
+   - No hash checking — restore is a full overwrite by default, `--no-clobber` flag skips existing files
+6. Run repo restore: `scripts/restore-repos.sh`
+   - Reads `workspace/repos.json`
+   - For each repo: if directory exists → skip. If not → clone with correct remotes.
+   - Sets upstream remote if specified.
+7. Install Node.js, then `cd ~/.openclaw/workspace && npm install` (for ongoing TS sync scripts)
+8. Set git hooks: `cd ~/.openclaw/workspace && git config core.hooksPath .githooks`
+9. Verify with `openclaw status`
 
 ### Partial restore
 
 - Restore specific paths: `scripts/restore.sh --path credentials/`
-- Point-in-time: Use S3 console or `aws s3api list-object-versions` to retrieve prior versions
+
+### Point-in-time restore
+
+- Use S3 console or `aws s3api list-object-versions` to retrieve prior versions
+
+### Repo restore behavior
+
+| Scenario | Action |
+|---|---|
+| Target directory doesn't exist | Clone from `origin`, checkout `branch`, add `upstream` remote if specified |
+| Target directory exists and is a git repo | Skip (assume already restored or manually managed) |
+| Target directory exists but is NOT a git repo | Skip + log warning |
+| Auth failure during clone | Log error, continue with remaining repos |
+| Branch doesn't exist on remote | Clone default branch, log warning |
 
 ### README.md requirements
 
 The workspace `README.md` must document:
 - What this repo is and who it belongs to
+- Bot-specific configuration: bucket name, AWS profile, bot prefix, region
 - Prerequisites (Node.js, AWS CLI, OpenClaw)
-- How to restore from S3 (AWS profile setup, npm install, restore script usage)
+- How to restore from S3 (profile setup, restore script usage)
 - How to set up git hooks
-- Where to find the full spec (this file)
-- What S3 artifacts exist and their purpose (backup-registry.json, repos.json)
+- What S3 artifacts exist and their purpose
+- How to adapt this for a new bot (change prefix, create registry, etc.)
 
 ---
 
@@ -338,31 +513,38 @@ The workspace `README.md` must document:
 2. ✅ Existing: `.githooks/` with pre-commit + post-commit
 3. ✅ Existing: `scripts/auto-commit.sh`
 4. ✅ Applied: S3 lifecycle rule (`expire-old-versions-365d`)
-5. ✅ Created: `repos/repos.json` manifest (in gitignored `repos/`, synced to S3)
+5. ✅ Created: `workspace/repos.json` manifest (gitignored, synced to S3)
 6. Create initial `backup-registry.json` with all current paths mapped
-7. Add `package.json` + `tsconfig.json` for TypeScript scripts
-8. Write `scripts/s3-sync.ts` — the core sync script (reads registry, hashes, uploads, delete markers, unknown path handling, escalations, pruning, JSONL logging)
-9. Write `scripts/backup.sh` — thin bash orchestrator (git + TS sync)
-10. Write `scripts/restore.sh` — pure bash restore (works on bare machine with only AWS CLI)
-11. Update `README.md` with restore instructions and S3 artifact reference
-12. Set up hourly cron via `openclaw cron`
-13. Test: run backup, verify S3 contents, test restore to temp dir
+7. Add `package.json` + `tsconfig.json` for TypeScript scripts (if not existing)
+8. Write `scripts/s3-sync.ts` — two-phase sync with safety gates
+9. Write `scripts/backup.sh` — thin bash orchestrator
+10. Write `scripts/restore.sh` — pure bash S3 restore
+11. Write `scripts/restore-repos.sh` — repo cloning from manifest
+12. Update `README.md` with restore instructions, bot-specific config, S3 artifact reference
+13. Set up hourly cron via `openclaw cron`
+14. Test: run backup, verify S3 contents, test restore to temp dir
 
 ---
 
 ## Resolved Decisions
 
-- **Backup registry:** Single source of truth in `backup-registry.json` (S3 + local). Four-state model: `github`/`s3`/`ignored`/`unknown`. Map-based schema for O(1) lookup. Unknown paths are transient — backed up using parent rule, escalation written, replaced after confirmation.
-- **S3 path structure:** Mirrors `~/.openclaw/` exactly. S3 key = path relative to `~/.openclaw/`. No prefix mapping.
-- **Orphaned S3 objects:** When a file is deleted locally, the sync script places a delete marker on the S3 object. S3 versioning preserves all prior versions. Delete markers expire after 365 days via lifecycle rule.
-- **Large file threshold:** 100 MB. Files above this are still uploaded but flagged in the run log and reported in daily digest.
-- **Repo manifest:** `workspace/repos.json` (gitignored, synced to S3). Contains repo origin URLs, branches, upstreams, and `folderName` for clone targets.
-- **S3 lifecycle rule:** Non-current versions expire after 365 days. Incomplete multipart uploads aborted after 7 days. Applied 2026-03-29.
-- **Logging/reporting:** See `specs/daily-and-weekly-digest.md` for the full reporting pipeline. All backup scripts write JSONL logs. Daily + weekly digests aggregate and deliver to control plane.
-- **Error escalation:** Critical errors write escalation marker files. Heartbeat picks them up and posts to MEK control plane. Stack traces captured verbatim.
-- **Hash strategy:** Native S3 SHA-256 checksums (first-class feature). Validated server-side on upload. Node.js `crypto.createHash('sha256').digest('base64')` produces identical output. Verified 2026-03-29.
-- **Inbound media:** `ignored` — temp processing cache, originals live in source channels.
+- **Backup registry:** Local copy is authoritative. S3 copy is just a backup. Three-state model (`github`/`s3`/`ignored`) with runtime-only inheritance for unknown paths. Map-based schema for O(1) lookup.
+- **Unknown paths:** Resolved at runtime via parent walk, never persisted as `unknown`. Escalation written on every run until formal entry added. Root default: `s3`, no pruning.
+- **S3 path structure:** Bot-specific prefix + mirror of `~/.openclaw/`. Prefix configured per bot in README.md.
+- **Two-phase sync:** Phase 1 (uploads) must fully succeed before Phase 2 (delete markers). Safety checks: minimum file count (50%), deletion ratio cap (20%), read-error prefix exclusion.
+- **Pruning safety:** Local files only pruned after confirming they exist in S3 with matching checksum. Pruning uses mtime for age calculation.
+- **No checksum fallback:** Objects without checksums are always re-uploaded with `ChecksumAlgorithm: SHA256`. Self-heals over time.
+- **Delete markers:** Placed only after successful full upload pass + safety checks. S3 versioning preserves all prior versions. Delete markers expire after 365 days via lifecycle rule.
+- **Large file threshold:** 100 MB. Informational flagging in run log and daily digest. No behavioral change.
+- **Repo manifest:** `workspace/repos.json` (gitignored, synced to S3). `folderName` field for clone targets.
+- **Repo restore:** Separate script (`restore-repos.sh`). Skip existing directories. Log errors, continue with remaining repos.
+- **S3 lifecycle rule:** Non-current versions expire after 365 days. Incomplete multipart uploads aborted after 7 days.
+- **Logging:** Per-process JSONL. Backup logs in `logs/backup/`. 7-day local retention. See `specs/daily-and-weekly-digest.md` for aggregation/delivery.
+- **Error escalation:** Marker files in `logs/escalations/`. Heartbeat pickup (≤30 min). No `openclaw notify` — heartbeat is sufficient.
+- **Hash strategy:** Native S3 SHA-256 checksums. Node.js `crypto.createHash('sha256').digest('base64')`. Verified 2026-03-29.
+- **Scan boundaries:** Exclude `.git/`, `node_modules/`, `__pycache__/`, `.venv/`, `.cache/`, sockets, pipes, device files. Symlinks stored as-is; escalation if target not backed up.
+- **Scripting:** TypeScript for `s3-sync.ts` (via `npx tsx`). Bash for orchestration (`backup.sh`), restore (`restore.sh`, `restore-repos.sh`), and git scripts. No Python.
+- **Registry location:** Local is authoritative. S3 is backup only. Not in git (may contain sensitive paths).
+- **Namespace separation:** Bot-specific S3 prefix. Configured per bot, documented in README.md.
+- **Root-level files:** Explicit registry entries required for files at `~/.openclaw/` and `~/.openclaw/workspace/` roots. New root files trigger escalation with default `s3` rule.
 - **Workspace memory:** Never pruned locally — needed for QMD access.
-- **Prune logging:** Not logged individually. S3 delete markers serve as the audit trail.
-- **Scripting language:** TypeScript for sync/restore scripts (via `npx tsx`). Bash for thin orchestration (`backup.sh`) and simple git scripts. No Python.
-- **Registry location:** S3 (not git) — may contain sensitive path names. Downloaded on restore as first step.
