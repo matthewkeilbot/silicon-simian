@@ -112,6 +112,12 @@ Auth: Anthropic (setup-token), OpenAI Codex (OAuth), Google Gemini (OAuth)
 - Google: Gemini CLI OAuth
 - If auth expires → re-auth the subscription, never create API keys as a workaround
 
+## Scripting Language Preference (from Matthew, 2026-03-29)
+
+- Prefer **Bash** for simple scripts.
+- If complexity grows, switch to **TypeScript** (not Python).
+- Python is explicitly disliked — avoid it for new scripts/tools.
+
 ## Anti-Laziness Principle (from Matthew, 2026-03-20)
 
 **Never ask Matthew (or anyone up the chain) to look up information you can find yourself.**

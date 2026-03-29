@@ -1,138 +1,227 @@
-# OpenClaw Backup + State Recovery Plan (Updated)
+# OpenClaw Backup + State Recovery Plan
 
 ## Goal
-Restore state quickly after host failure while keeping private memory/conversation data out of git and encrypted at rest in backups.
+
+Ensure full recoverability after host failure. Two lanes:
+- **Lane A — Git:** Workspace files (public/non-sensitive) pushed to GitHub.
+- **Lane B — S3:** Private/runtime state synced to a versioned S3 bucket.
+
+A new OpenClaw instance should be able to clone the workspace repo, follow the README, pull state from S3, and be fully operational within minutes.
 
 ---
 
-## Final architecture
+## Lane A — Workspace Git
 
-### Lane A — **Workspace Git (primary, immediate push)**
-- Git repo root: `~/.openclaw/workspace`
-- Commit directly in-place (no rsync mirror).
-- Auto-push immediately after each commit using tracked hooks in `.githooks/`.
-- Canonical branch: `main`
-- Remote: `origin -> git@github.com:matthewkeilbot/silicon-simian.git`
-- `~/.openclaw/workspace/repos/*` remains independently git-managed.
+- **Repo root:** `~/.openclaw/workspace`
+- **Remote:** `origin -> git@github.com:matthewkeilbot/silicon-simian.git`
+- **Branch:** `main`
+- **Hooks:** Tracked in `.githooks/` (pre-commit blocker, post-commit auto-push).
+- **Setup after clone:** `git config core.hooksPath .githooks`
+- **Safety net:** Cron every 15 min runs `git push --porcelain` if branch is ahead.
 
-### Lane B — **Encrypted private-state backups**
-- Use `restic` to Google Drive (preferred) or S3, always client-side encrypted.
-- Back up private/runtime OpenClaw state that must never be pushed to git.
+### What lives in git
 
----
+| Path | Notes |
+|---|---|
+| `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md` | Core identity/config |
+| `HEARTBEAT.md`, `BOOTSTRAP.md` | Operational |
+| `skills/` | Locally authored skills |
+| `specs/` | Architecture/runbooks |
+| `scripts/` | Backup, git, and utility scripts |
+| `agents/` | Agent definitions |
+| `avatar/` | Avatar assets |
+| `tools/` | Local tooling (playwright-shot, etc.) |
+| `.githooks/` | Git hooks |
 
-## Scope and sensitivity policy
+### What is .gitignored (backed up via S3 instead)
 
-### Track in workspace git (safe, useful)
-- `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, `HEARTBEAT.md`
-- `skills/` (locally authored skills)
-- `specs/` (runbooks/architecture)
-- scripts/tooling/docs that are non-sensitive
-
-Note: **No derivative of `openclaw.json` is stored in git** (including sanitized templates).
-
-### Never track in git
-- `MEMORY.md`
-- `memory/**`
-- any secrets (`*.env`, tokens, keys, creds)
-- private research/journal content
-- large/generated temp artifacts as needed
-
-Enforcement layers:
-1. `.gitignore` (convenience)
-2. pre-commit blocker (hard stop for sensitive paths/patterns)
-3. secret scanner in hook/CI (required for this workflow)
-
----
-
-## `~/.openclaw` folder plan (git vs backup)
-
-| Path | Git | Encrypted backup | Notes |
-|---|---:|---:|---|
-| `workspace/` | **Selective** | **Yes** (private parts) | Primary authored state in git; private docs still backup-only. |
-| `openclaw.json` | No (raw) | Yes | Backup-only. Never store raw or sanitized derivatives in git. |
-| `credentials/` | No | Yes | Secrets only. |
-| `sessions/` | No | Yes | Private continuity. |
-| `subagents/` | No | Yes | Private continuity. |
-| `telegram/` | No | Yes | Channel/plugin runtime state. |
-| `identity/` | No | Yes | Treat as sensitive (contains secrets). |
-| `agents/` | No | Yes | Runtime state; useful for restore. |
-| `data/` | No | Yes | Runtime/internal stores. |
-| `devices/` | No | Yes | Pairing/metadata. |
-| `cron/` | No (runtime DB) | Yes | Export declarative cron spec into `workspace/specs/cron/` for git. Manage jobs with OpenClaw CLI only (`openclaw cron ...`). |
-| `media/` | No | Optional | Include if attachment continuity required. |
-| `logs/`, `completions/`, `canvas/`, `delivery-queue/`, `update-check.json` | No | Optional/No | Mostly ephemeral/debug. |
+| Path | Reason |
+|---|---|
+| `MEMORY.md` | Private long-term memory |
+| `memory/` | Private daily memory files |
+| `state/` | Runtime state |
+| `assets/` | Generated/working media assets |
+| `repos/` | Independently git-managed repos |
+| `logs/` | Session logs |
+| `*.env`, `*.pem`, `*.key` | Secrets |
+| `openclaw.json` | Config with secrets |
+| `.openclaw/`, `.pi/` | Runtime dirs |
+| `quarantine/` | Untrusted downloads |
+| `products/` | Private product ideas |
 
 ---
 
-## `openclaw.json` handling (authoritative)
+## Lane B — S3 Sync
 
-- `~/.openclaw/openclaw.json` and any derivative (including sanitized templates) are **backup-only artifacts**.
-- They are stored in encrypted backups (Google Drive or S3 via restic), not in git.
-- Any change to `openclaw.json` should trigger an immediate encrypted backup run.
-- Access to config contents for troubleshooting happens locally only; never commit/push.
+- **Bucket:** `s3://matthewkeilbot/`
+- **Profile:** `matthewkeilbot` (AWS CLI)
+- **Region:** `ap-southeast-1`
+- **Versioning:** Enabled (S3 handles history/rollback natively)
+- **Encryption:** None client-side; bucket is private, rely on S3 server-side encryption + IAM.
 
-## Setup (required on clone/reclone)
+### S3 prefix structure
 
-`core.hooksPath` is stored in local git config (`.git/config`) and is **not tracked** in commits.
-After cloning (or restoring) the workspace repo, run this once:
+Mirrors local paths under a top-level `openclaw/` prefix:
 
-```bash
-cd ~/.openclaw/workspace
-git config core.hooksPath .githooks
-git config --get core.hooksPath   # should print: .githooks
+```
+s3://matthewkeilbot/openclaw/                     ← mirrors ~/.openclaw/
+  openclaw.json
+  credentials/
+  sessions/
+  subagents/
+  telegram/
+  identity/
+  agents/
+  data/
+  devices/
+  cron/
+  media/
+  memory/                                          ← ~/.openclaw/memory/ (if used)
+  logs/commands.log
+  logs/config-audit.jsonl
+  completions/                                     ← shell completions (useful for restore)
+  canvas/index.html
+  delivery-queue/
+
+s3://matthewkeilbot/workspace/                    ← mirrors ~/.openclaw/workspace/ (private parts only)
+  MEMORY.md
+  memory/
+  state/
+  assets/
+  products/
 ```
 
-Without this setup, tracked hooks exist in `.githooks/` but will not execute.
+### `~/.openclaw/` directory — backup matrix
 
-## Git hooks + immediate push behavior (persisted in repo)
+| Path | Git | S3 | Pruning | Notes |
+|---|---|---|---|---|
+| `openclaw.json` | ❌ | ✅ | — | Config with secrets. Immediate sync on change. |
+| `credentials/` | ❌ | ✅ | — | Secrets/keys. |
+| `sessions/` | ❌ | ✅ | >30 days | Agent session state. |
+| `subagents/` | ❌ | ✅ | >30 days | Sub-agent state. |
+| `telegram/` | ❌ | ✅ | — | Channel/plugin runtime state. |
+| `identity/` | ❌ | ✅ | — | Contains secrets. |
+| `agents/` | ❌ | ✅ | — | Runtime agent state. |
+| `data/` | ❌ | ✅ | — | Internal data stores. |
+| `devices/` | ❌ | ✅ | — | Pairing/device metadata. |
+| `cron/` | ❌ | ✅ | runs/ >7 days | Cron DB + run history. |
+| `media/` | ❌ | ✅ | inbound/ >14 days | Inbound attachments. |
+| `memory/` | ❌ | ✅ | — | Top-level memory dir (if used outside workspace). |
+| `logs/` | ❌ | ✅ | >14 days | Commands log, config audit. |
+| `completions/` | ❌ | ✅ | — | Shell completions (small, useful for restore). |
+| `canvas/` | ❌ | ✅ | — | Canvas index (small). |
+| `delivery-queue/` | ❌ | ✅ | failed/ >7 days | Message delivery queue. |
+| `browser/` | ❌ | ❌ | — | Symlinks + browser data, not useful to back up. |
 
-Use tracked hooks in the workspace repo so behavior is versioned:
+### `~/.openclaw/workspace/` — private files for S3
 
-- Hook directory (tracked): `~/.openclaw/workspace/.githooks/`
-  - `pre-commit`: blocks sensitive paths/patterns; optional `gitleaks` check.
-  - `post-commit`: verifies GitHub repo is private, then `git push` immediately.
-- Repo setting (local git config): `core.hooksPath=.githooks`
-
-If push fails:
-- commit remains local;
-- notify control-plane;
-- retry via periodic job.
-
-Recommended helper cron (safety net): every 15 minutes run `git push --porcelain` if branch is ahead.
-
----
-
-## Encrypted backup plan (restic)
-
-### Backend choice
-- Start: Google Drive + restic encryption (via rclone backend).
-- Optional later: migrate to S3/R2 backend with same restic workflow.
-
-### Backup sets
-- **Hourly (critical):** `credentials`, `openclaw.json`, `sessions`, `subagents`, `telegram`, `identity`, private workspace memory files.
-- **Daily (broader):** `agents`, `data`, `devices`, optional `media`.
-- **Weekly (archive/checkpoint):** full `.openclaw` minus explicitly ephemeral paths.
-
-### Retention
-- Hourly: 48h
-- Daily: 30d
-- Weekly: 12w
-- Monthly: 12m
-
-### Verification
-- Daily: snapshot freshness check
-- Weekly: partial data check (`restic check --read-data-subset=5%`)
-- Monthly: restore drill + grep validation
+| Path | Git | S3 | Pruning | Notes |
+|---|---|---|---|---|
+| `MEMORY.md` | ❌ | ✅ | — | Long-term curated memory. |
+| `memory/` | ❌ | ✅ | >90 days | Daily memory files. |
+| `state/` | ❌ | ✅ | — | Runtime state (email state, etc.). |
+| `assets/` | ❌ | ✅ | working/ >14 days | Generated media assets. |
+| `products/` | ❌ | ✅ | — | Private product ideas. |
+| `repos/` | ❌ | ❌ | — | Independently git-managed, skip entirely. |
+| `logs/` | ❌ | ✅ | >14 days | Workspace logs. |
+| `quarantine/` | ❌ | ❌ | — | Untrusted downloads, not worth backing up. |
+| `.openclaw/`, `.pi/` | ❌ | ❌ | — | Runtime/unknown, skip. |
 
 ---
 
+## Sync Script Design
+
+### Principle
+
+One script. No LLM involvement. Runs via cron. Deterministic.
+
+### Algorithm
+
+```
+For each configured local path:
+  1. Walk local files, compute SHA-256 hash for each
+  2. List corresponding S3 prefix, get ETags (MD5 for non-multipart)
+  3. For each local file:
+     - If not in S3 → upload
+     - If in S3 but hash differs → upload
+     - If in S3 and hash matches → skip
+  4. Optionally: flag S3 objects with no local counterpart (deleted locally)
+     - Do NOT auto-delete from S3 (versioning preserves history, but avoid accidental purges)
+     - Log orphans for manual review
+```
+
+### Hash strategy
+
+- Local: SHA-256 (reliable, doesn't depend on upload method)
+- Store SHA-256 as S3 object metadata (`x-amz-meta-sha256`) on upload
+- On sync: compare local SHA-256 against stored metadata
+- If metadata missing (legacy/manual upload): fall back to size + last-modified comparison, then re-upload with metadata
+
+### Pruning
+
+- Run after sync completes
+- Apply age-based rules per the tables above
+- Delete locally only (S3 versioning preserves deleted objects)
+- Log all prune actions
+
+### Parent orchestration script
+
+A single parent script (`scripts/backup.sh`) that:
+1. Runs git auto-commit + push (Lane A)
+2. Runs S3 sync (Lane B)
+3. Runs pruning
+4. Logs results
+
+Cron runs the parent script hourly.
+
 ---
 
-## Implementation order
+## Restore Workflow
 
-1. Tighten `workspace/.gitignore`.
-2. Add tracked hooks under `workspace/.githooks/` (pre-commit + post-commit).
-3. Set `git config core.hooksPath .githooks` in workspace repo.
-4. Add retry cron for failed pushes.
-5. Configure restic encrypted backups + retention (including immediate backup trigger on `openclaw.json` changes).
+### From scratch (new host)
+
+1. Install OpenClaw
+2. Clone workspace repo: `git clone git@github.com:matthewkeilbot/silicon-simian.git ~/.openclaw/workspace`
+3. Follow `README.md` in the repo (which documents next steps)
+4. Configure AWS CLI profile `matthewkeilbot`
+5. Run restore script: `scripts/restore.sh`
+   - Pulls all S3 objects back to their local paths
+   - Skips files that already match (hash check)
+6. Set git hooks: `cd ~/.openclaw/workspace && git config core.hooksPath .githooks`
+7. Verify with `openclaw status`
+
+### Partial restore
+
+- Restore specific paths: `scripts/restore.sh --path credentials/`
+- Point-in-time: Use S3 console or `aws s3api list-object-versions` to retrieve prior versions
+
+### README.md requirements
+
+The workspace `README.md` must document:
+- What this repo is
+- How to restore from S3 (AWS profile setup, restore script usage)
+- How to set up hooks
+- Where to find the full spec (this file)
+
+---
+
+## Implementation Order
+
+1. ✅ Existing: `.gitignore` configured
+2. ✅ Existing: `.githooks/` with pre-commit + post-commit
+3. ✅ Existing: `scripts/auto-commit.sh`
+4. Write `scripts/s3-sync.sh` — the core sync script
+5. Write `scripts/s3-prune.sh` — age-based local pruning
+6. Write `scripts/backup.sh` — parent orchestrator (git + S3 + prune)
+7. Write `scripts/restore.sh` — pull from S3 to local
+8. Update `README.md` with restore instructions
+9. Set up hourly cron via `openclaw cron`
+10. Test: run backup, verify S3 contents, test restore to temp dir
+
+---
+
+## Open Decisions
+
+- [ ] Should orphaned S3 objects (deleted locally) be flagged in a report or just left alone?
+- [ ] Max file size threshold for sync? (e.g., skip files >500MB and log a warning)
+- [ ] Should the restore script also handle `repos/` cloning (from a manifest of repo URLs)?
