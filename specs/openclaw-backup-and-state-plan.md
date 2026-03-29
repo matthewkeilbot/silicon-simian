@@ -178,9 +178,11 @@ For each configured local path:
      - If not in S3 → upload
      - If in S3 but hash differs → upload
      - If in S3 and hash matches → skip
+  4. For each S3 object with no local counterpart:
+     - Place a delete marker (aws s3api delete-object)
+     - S3 versioning preserves all prior versions; the delete marker
+       just records that the file no longer exists locally
 ```
-
-Files deleted locally are left alone in S3. S3 versioning is the history/audit trail. No orphan detection or cleanup needed.
 
 ### Hash strategy — native S3 checksums
 
@@ -207,13 +209,13 @@ Returns `ChecksumSHA256` (base64-encoded) in the response.
 
 **Local computation:**
 ```bash
-sha256sum /path/to/file | awk '{print $1}' | xxd -r -p | base64
+openssl dgst -sha256 -binary /path/to/file | base64
 ```
-Produces the same base64-encoded SHA-256 that S3 stores.
+Produces the exact same base64-encoded SHA-256 that S3 stores as `ChecksumSHA256`. Verified 2026-03-29 — apples-to-apples match confirmed.
 
 **Comparison:** If local base64 SHA-256 matches `ChecksumSHA256` from head-object → skip. Otherwise → upload.
 
-**Fallback:** If an object was uploaded without `--checksum-algorithm` (legacy/manual), head-object won't return `ChecksumSHA256`. Fall back to size + last-modified comparison, then re-upload with checksum enabled.
+**Fallback:** If an object was uploaded without `--checksum-algorithm` (legacy/manual), head-object won't return `ChecksumSHA256`. Fall back to size comparison, then re-upload with checksum enabled so future syncs use native checksums.
 
 ### Large file handling
 
@@ -280,7 +282,7 @@ The workspace `README.md` must document:
 
 ## Resolved Decisions
 
-- **Orphaned S3 objects:** Leave them. S3 versioning preserves everything. No detection or cleanup needed.
+- **Orphaned S3 objects:** When a file is deleted locally, the sync script places a delete marker on the S3 object. S3 versioning preserves all prior versions. Delete markers expire after 365 days via lifecycle rule.
 - **Large file threshold:** 100 MB. Files above this are still uploaded but flagged in the run log and reported in daily digest.
 - **Repo manifest:** `repos.json` maintained in workspace, synced to S3 (not git). Contains repo URLs, branches, and upstreams for restore.
 - **S3 lifecycle rule:** Non-current versions expire after 365 days. Incomplete multipart uploads aborted after 7 days. Applied 2026-03-29.
