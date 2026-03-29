@@ -12,6 +12,7 @@
 
 # Git repos with their own git tracking
 /repos/
+/repos.json
 
 # Secrets/config
 openclaw.json

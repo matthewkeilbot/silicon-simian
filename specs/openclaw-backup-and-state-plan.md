@@ -58,6 +58,7 @@ A new OpenClaw instance should be able to clone the workspace repo, follow the R
 - **Region:** `ap-southeast-1`
 - **Versioning:** Enabled (S3 handles history/rollback natively)
 - **Encryption:** None client-side; bucket is private, rely on S3 server-side encryption + IAM.
+- **Lifecycle rule (active):** `expire-old-versions-365d` — non-current versions expire after 365 days, incomplete multipart uploads aborted after 7 days.
 
 ### S3 prefix structure
 
@@ -107,7 +108,7 @@ s3://matthewkeilbot/workspace/                    ← mirrors ~/.openclaw/worksp
 | `cron/` | ❌ | ✅ | runs/ >7 days | Cron DB + run history. |
 | `media/` | ❌ | ✅ | inbound/ >14 days | Inbound attachments. |
 | `memory/` | ❌ | ✅ | — | Top-level memory dir (if used outside workspace). |
-| `logs/` | ❌ | ✅ | >14 days | Commands log, config audit. |
+| `logs/` | ❌ | ✅ | Per-run: after digest aggregation; digests: see digest spec | Commands log, config audit, backup logs. |
 | `completions/` | ❌ | ✅ | — | Shell completions (small, useful for restore). |
 | `canvas/` | ❌ | ✅ | — | Canvas index (small). |
 | `delivery-queue/` | ❌ | ✅ | failed/ >7 days | Message delivery queue. |
@@ -122,6 +123,7 @@ s3://matthewkeilbot/workspace/                    ← mirrors ~/.openclaw/worksp
 | `state/` | ❌ | ✅ | — | Runtime state (email state, etc.). |
 | `assets/` | ❌ | ✅ | working/ >14 days | Generated media assets. |
 | `products/` | ❌ | ✅ | — | Private product ideas. |
+| `repos.json` | ❌ | ✅ | — | Repo manifest for restore (URLs, branches, upstreams). |
 | `repos/` | ❌ | ❌ | — | Independently git-managed, skip entirely. |
 | `logs/` | ❌ | ✅ | >14 days | Workspace logs. |
 | `quarantine/` | ❌ | ❌ | — | Untrusted downloads, not worth backing up. |

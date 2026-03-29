@@ -4,7 +4,18 @@
 
 A single, unified reporting pipeline for all system processes. Each process writes structured logs. A digest job aggregates them into a human-readable summary delivered to the control plane (MEK Telegram).
 
-No LLM involvement in log collection or aggregation. LLM only used for final digest formatting + delivery.
+No LLM involvement in log collection, aggregation, or the backup process itself. LLM used only for:
+1. **Daily digest delivery** — haiku session reads pre-aggregated JSON → formats → posts to MEK Telegram
+2. **Escalation pickup** — heartbeat reads escalation marker files → posts alert to MEK
+
+The full pipeline with zero LLM involvement:
+```
+cron (hourly)  → scripts/backup.sh    → pure bash, writes JSONL logs + escalation files
+cron (daily)   → scripts/daily-digest.sh  → pure bash, aggregates JSONL → digest JSON
+cron (weekly)  → scripts/weekly-digest.sh → pure bash, aggregates dailies → weekly JSON
+cron (daily)   → haiku LLM session    → reads digest JSON → posts formatted message to MEK
+heartbeat      → checks logs/escalations/ → posts critical alerts to MEK (≤30 min latency)
+```
 
 ---
 
@@ -110,11 +121,13 @@ Logs get uploaded as part of the regular S3 sync (they live in backed-up paths).
 
 | Log type | Local retention | S3 retention |
 |---|---|---|
-| Per-run logs (`backup/`, `email/`, etc.) | 14 days | Versioned (12 months via lifecycle) |
-| Daily digests | 90 days | Versioned |
+| Per-run logs (`backup/`, `email/`, etc.) | **Deleted after aggregation into daily digest** | Versioned (12 months via lifecycle) |
+| Daily digests | **Deleted after aggregation into weekly digest** | Versioned |
 | Weekly digests | 1 year | Versioned |
 
-Pruning handled by the existing `s3-prune.sh` age rules.
+Per-run logs are ephemeral — once the daily digest script has consumed them and produced the aggregated JSON, the individual JSONL files are deleted locally. They've already been synced to S3 before aggregation (since the sync runs before the digest), so S3 versioning preserves the originals.
+
+Same for daily digests: once rolled into the weekly summary, the daily files are pruned locally.
 
 ---
 
