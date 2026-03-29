@@ -220,8 +220,11 @@ The workspace `README.md` must document:
 
 ---
 
-## Open Decisions
+## Resolved Decisions
 
-- [ ] Should orphaned S3 objects (deleted locally) be flagged in a report or just left alone?
-- [ ] Max file size threshold for sync? (e.g., skip files >500MB and log a warning)
-- [ ] Should the restore script also handle `repos/` cloning (from a manifest of repo URLs)?
+- **Orphaned S3 objects:** Leave them. S3 versioning preserves everything. Log orphan count in run logs, no action needed.
+- **Large file threshold:** 100 MB. Files above this are still uploaded but flagged in the `large_files` manifest within the run log. Reported in daily digest.
+- **Repo manifest:** `repos.json` maintained in workspace, synced to S3 (not git). Contains repo URLs + branches for restore. Restore script uses it to re-clone all repos.
+- **S3 lifecycle rule:** Non-current versions expire after 365 days. Expired delete markers auto-cleaned. Incomplete multipart uploads aborted after 7 days. Set once via `put-bucket-lifecycle-configuration`.
+- **Logging/reporting:** See `specs/daily-and-weekly-digest.md` for the full reporting pipeline. All backup scripts write JSONL logs. Daily + weekly digests aggregate and deliver to control plane.
+- **Error escalation:** Critical errors (auth failures, 3 consecutive push failures, crashes with stack traces) write escalation marker files picked up by heartbeat or `openclaw notify`. Stack traces captured verbatim.
