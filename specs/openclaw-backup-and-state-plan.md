@@ -27,9 +27,9 @@ Git serves two purposes: backup **and** open-source sharing. The workspace repo 
 
 ## Lane B — S3 Sync
 
-- **Bucket:** `s3://matthewkeilbot/`
-- **Profile:** `matthewkeilbot` (AWS CLI)
-- **Region:** `ap-southeast-1`
+- **Bucket:** `s3://BUCKET_NAME/` (see `README.md` for actual value)
+- **Profile:** `AWS_PROFILE` (see `README.md`)
+- **Region:** `AWS_REGION` (see `README.md`)
 - **Versioning:** Enabled (S3 handles history/rollback natively)
 - **Encryption:** None client-side; bucket is private, rely on S3 server-side encryption + IAM.
 - **Lifecycle rule (active):** `expire-old-versions-365d` — non-current versions expire after 365 days, incomplete multipart uploads aborted after 7 days.
@@ -54,13 +54,15 @@ S3 key: surrealdb-backups/mydb-2026-03-30.tar.gz
 
 The bucket is dedicated to this bot's backups. S3 key = path relative to `~`.
 
-Restore is trivial: download from S3 → write to `~/<key>`.
+Restore is trivial: `s3://BUCKET_NAME/.openclaw/<remainder>` → write to `~/.openclaw/<remainder>`.
+
+> **Note:** `BUCKET_NAME`, `AWS_PROFILE`, and `AWS_REGION` are bot-specific. See `README.md` for actual values.
 
 ### Lifecycle rule (applied 2026-03-29)
 
 ```bash
-aws --profile matthewkeilbot s3api put-bucket-lifecycle-configuration \
-  --bucket matthewkeilbot \
+aws --profile AWS_PROFILE s3api put-bucket-lifecycle-configuration \
+  --bucket BUCKET_NAME \
   --lifecycle-configuration '{
     "Rules": [{
       "ID": "expire-old-versions-365d",
@@ -312,9 +314,9 @@ Sync script reads configuration from a config block:
 
 ```typescript
 const CONFIG = {
-  bucket: 'matthewkeilbot',
-  region: 'ap-southeast-1',
-  profile: 'matthewkeilbot',
+  bucket: 'BUCKET_NAME',     // see README.md
+  region: 'AWS_REGION',       // see README.md
+  profile: 'AWS_PROFILE',    // see README.md
   localRoot: os.homedir(),
   registryPath: path.join(os.homedir(), '.openclaw/backup-registry.json'),
   stateCachePath: path.join(os.homedir(), '.openclaw/backup-sync-state.json'),
@@ -399,8 +401,8 @@ S3 natively supports SHA-256 checksums as a first-class feature:
 ```typescript
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 await s3.send(new PutObjectCommand({
-  Bucket: CONFIG.bucket,
-  Key: relativePath, // path relative to ~
+  Bucket: CONFIG.bucket, // BUCKET_NAME from README.md
+  Key: relativePath,     // path relative to ~
   Body: fileStream,
   ChecksumAlgorithm: 'SHA256'
 }));
