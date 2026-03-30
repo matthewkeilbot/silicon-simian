@@ -119,8 +119,8 @@ describe('computeSHA256', () => {
 
   it('returns base64-encoded SHA-256', async () => {
     const hash = await computeSHA256(tmpFile);
-    // sha256 of "hello world\n" in base64
-    assert.equal(hash, 'a948904f2f0f479b8f8564e9d7dfd858dea1868f7b30d09ee0c41aacbbb4d0ba' ? hash : hash);
+    // SHA-256 of "hello world\n" in base64
+    assert.equal(hash, "qUiQTy8PR5uPgZdpSzAYSw0u0cHNKh7A+4XSmaGSpEc=");
     assert.match(hash, /^[A-Za-z0-9+/]+=*$/);
   });
 

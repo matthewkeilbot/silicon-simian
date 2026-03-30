@@ -387,8 +387,7 @@ export async function runSync(s3Ops: S3Ops): Promise<RunLog> {
     try {
       if (fileInfo.isSymlink) {
         // Upload symlink as empty object with metadata
-        const head = await s3Ops.headObject(s3Key);
-        // Always re-upload symlinks (they're tiny)
+        // Symlinks are tiny — always re-upload
         await s3Ops.putObject(s3Key, Buffer.alloc(0), {
           'symlink-target': fileInfo.symlinkTarget || '',
         });

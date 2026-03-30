@@ -15,15 +15,16 @@ fi
 
 mkdir -p "$REPOS_DIR"
 
-# Parse repos.json using python or node if available, fall back to basic parsing
-# We use a portable approach with python3 (usually available)
-if command -v python3 &>/dev/null; then
-  PARSER="python3"
-elif command -v node &>/dev/null; then
+# Parse repos.json — prefer node, fall back to python3
+
+if command -v node &>/dev/null; then
   PARSER="node"
+elif command -v python3 &>/dev/null; then
+  PARSER="python3"
 else
-  echo "[restore-repos] ERROR: python3 or node required to parse JSON" >&2
+  echo "[restore-repos] ERROR: node or python3 required to parse JSON" &>2
   exit 1
+fi
 fi
 
 REPO_COUNT=0
@@ -31,7 +32,21 @@ CLONED=0
 SKIPPED=0
 ERRORS=0
 
-if [ "$PARSER" = "python3" ]; then
+if [ "$PARSER" = "node" ]; then
+  # Extract repo info using node
+  eval "$(node -e "
+const data = require('${REPOS_JSON}');
+const repos = data.repos || [];
+console.log('REPO_COUNT=' + repos.length);
+repos.forEach((r, i) => {
+  const esc = s => \"'\" + s.replace(/'/g, \"'\\\\''\" ) + \"'\";
+  console.log('REPO_' + i + '_FOLDER=' + esc(r.folderName));
+  console.log('REPO_' + i + '_ORIGIN=' + esc(r.origin));
+  console.log('REPO_' + i + '_BRANCH=' + esc(r.branch || 'main'));
+  console.log('REPO_' + i + '_UPSTREAM=' + esc(r.upstream || ''));
+});
+")"
+else
   # Extract repo info using python3
   eval "$(python3 -c "
 import json, sys, shlex
@@ -48,20 +63,6 @@ for i, r in enumerate(repos):
     print(f'REPO_{i}_ORIGIN={origin}')
     print(f'REPO_{i}_BRANCH={branch}')
     print(f'REPO_{i}_UPSTREAM={upstream}')
-")"
-else
-  # Extract repo info using node
-  eval "$(node -e "
-const data = require('${REPOS_JSON}');
-const repos = data.repos || [];
-console.log('REPO_COUNT=' + repos.length);
-repos.forEach((r, i) => {
-  const esc = s => \"'\" + s.replace(/'/g, \"'\\\\''\" ) + \"'\";
-  console.log('REPO_' + i + '_FOLDER=' + esc(r.folderName));
-  console.log('REPO_' + i + '_ORIGIN=' + esc(r.origin));
-  console.log('REPO_' + i + '_BRANCH=' + esc(r.branch || 'main'));
-  console.log('REPO_' + i + '_UPSTREAM=' + esc(r.upstream || ''));
-});
 ")"
 fi
 
