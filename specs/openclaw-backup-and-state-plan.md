@@ -516,7 +516,7 @@ Files >100 MB are uploaded normally but flagged in the run log `large_files` arr
 | Symlink target not in backup set | Included in batched escalation |
 | Phase 2 safety check tripped | Write escalation file |
 
-Escalation files written to `~/.openclaw/workspace/logs/escalations/`. Heartbeat picks them up (≤30 min latency) and posts to MEK control plane.
+Escalation files written to `~/.openclaw/workspace/logs/escalations/`. Heartbeat picks them up (≤30 min latency) and posts to Control Plane.
 
 ### Parent orchestration script
 
