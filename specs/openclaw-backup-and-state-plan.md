@@ -17,7 +17,7 @@ This spec is designed to be reusable. Bot-specific configuration (bucket name, A
 Git serves two purposes: backup **and** open-source sharing. The workspace repo is public so others can learn from the configuration — skills, specs, scripts, identity files, and agent patterns are all visible. This is intentional: the bot's personality, workflow design, and operational patterns are meant to be a reference for the community. Private/sensitive data is kept out of git (via `.gitignore`) and backed up exclusively through S3.
 
 - **Repo root:** `~/.openclaw/workspace`
-- **Remote:** `origin -> git@github.com:matthewkeilbot/silicon-simian.git`
+- **Remote:** `origin -> git@github.com:REPO_OWNER/REPO_NAME.git` (see `README.md`)
 - **Branch:** `main`
 - **Hooks:** Tracked in `.githooks/` (pre-commit blocker, post-commit auto-push).
 - **Setup after clone:** `git config core.hooksPath .githooks`
