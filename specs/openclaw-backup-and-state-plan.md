@@ -49,7 +49,13 @@ Local:  ~/.openclaw/openclaw.json
 S3 key: openclaw.json
 ```
 
-The bucket is dedicated to this bot's backups. Only paths under `~/.openclaw/` are managed by this backup plan. External paths (e.g. databases) are backed up separately.
+This backup plan only manages paths under `~/.openclaw/`. However, the bucket can hold other data outside this scope — for example, database backups managed by their own process:
+
+```
+s3://BUCKET_NAME/surrealdb-backups/mydb-2026-03-30.tar.gz  (managed separately)
+```
+
+The sync script ignores anything in the bucket that doesn't fall under its own key space. Other processes are free to write to the same bucket under their own prefixes.
 
 Restore is trivial: `s3://BUCKET_NAME/<key>` → write to `~/.openclaw/<key>`.
 
