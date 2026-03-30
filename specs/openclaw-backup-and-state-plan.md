@@ -36,25 +36,22 @@ Git serves two purposes: backup **and** open-source sharing. The workspace repo 
 
 ### S3 path structure
 
-S3 paths mirror the local filesystem relative to `~/` (home directory). The S3 key for any file is its path relative to `~`.
+S3 paths mirror the local filesystem exactly from `~/.openclaw/` as root. The S3 key for any file is its path relative to `~/.openclaw/`.
 
 ```
 Local:  ~/.openclaw/credentials/aws.json
-S3 key: .openclaw/credentials/aws.json
+S3 key: credentials/aws.json
 
 Local:  ~/.openclaw/workspace/MEMORY.md
-S3 key: .openclaw/workspace/MEMORY.md
+S3 key: workspace/MEMORY.md
 
 Local:  ~/.openclaw/openclaw.json
-S3 key: .openclaw/openclaw.json
-
-Local:  ~/surrealdb-backups/mydb-2026-03-30.tar.gz
-S3 key: surrealdb-backups/mydb-2026-03-30.tar.gz
+S3 key: openclaw.json
 ```
 
-The bucket is dedicated to this bot's backups. S3 key = path relative to `~`.
+The bucket is dedicated to this bot's backups. Only paths under `~/.openclaw/` are managed by this backup plan. External paths (e.g. databases) are backed up separately.
 
-Restore is trivial: `s3://BUCKET_NAME/.openclaw/<remainder>` → write to `~/.openclaw/<remainder>`.
+Restore is trivial: `s3://BUCKET_NAME/<key>` → write to `~/.openclaw/<key>`.
 
 > **Note:** `BUCKET_NAME`, `AWS_PROFILE`, and `AWS_REGION` are bot-specific. See `README.md` for actual values.
 
@@ -114,7 +111,7 @@ This ensures unknown paths are always backed up, never pruned, and always escala
 
 ### Registry schema
 
-The registry is a map where each key is a path (relative to `~`) and each value is the config for that path. O(1) lookup by path during directory walking.
+The registry is a map where each key is a path (relative to `~/.openclaw/`) and each value is the config for that path. O(1) lookup by path during directory walking.
 
 ```json
 {
@@ -122,41 +119,37 @@ The registry is a map where each key is a path (relative to `~`) and each value 
   "version": 1,
   "updated": "2026-03-30T01:57:00Z",
   "entries": {
-    ".openclaw/openclaw.json": {
+    "openclaw.json": {
       "backup": "s3",
       "pruneMaxDays": null
     },
-    ".openclaw/backup-registry.json": {
+    "backup-registry.json": {
       "backup": "s3",
       "pruneMaxDays": null
     },
-    ".openclaw/credentials": {
+    "credentials": {
       "backup": "s3",
       "pruneMaxDays": null
     },
-    ".openclaw/workspace/AGENTS.md": {
+    "workspace/AGENTS.md": {
       "backup": "github",
       "pruneMaxDays": null
     },
-    ".openclaw/workspace/MEMORY.md": {
+    "workspace/MEMORY.md": {
       "backup": "s3",
       "pruneMaxDays": null
     },
-    ".openclaw/workspace/skills": {
+    "workspace/skills": {
       "backup": "github",
       "pruneMaxDays": null
     },
-    ".openclaw/workspace/repos": {
+    "workspace/repos": {
       "backup": "ignored",
       "pruneMaxDays": null
     },
-    ".openclaw/cron/runs": {
+    "cron/runs": {
       "backup": "s3",
       "pruneMaxDays": 7
-    },
-    "surrealdb-backups": {
-      "backup": "s3",
-      "pruneMaxDays": null
     }
   }
 }
@@ -275,7 +268,7 @@ These files live in S3 and are used by the backup/restore process. Documented he
 
 ## Scan Boundaries
 
-The sync script walks all paths registered in the backup registry. For directory entries, it walks them recursively. The following are **always excluded** from scanning, regardless of registry entries:
+The sync script walks `~/.openclaw/` recursively. The following are **always excluded** from scanning, regardless of registry entries:
 
 | Exclusion | Reason |
 |---|---|
@@ -317,7 +310,7 @@ const CONFIG = {
   bucket: 'BUCKET_NAME',     // see README.md
   region: 'AWS_REGION',       // see README.md
   profile: 'AWS_PROFILE',    // see README.md
-  localRoot: os.homedir(),
+  localRoot: path.join(os.homedir(), '.openclaw'),
   registryPath: path.join(os.homedir(), '.openclaw/backup-registry.json'),
   stateCachePath: path.join(os.homedir(), '.openclaw/backup-sync-state.json'),
 };
@@ -333,7 +326,7 @@ The sync runs in two phases. Phase 2 (deletions) only executes if Phase 1 (uploa
 1. Load backup-registry.json (local copy — authoritative)
 2. Optionally validate registry JSON schema (warn on issues, continue)
 3. Load local state cache (if exists)
-4. Scan all registered root paths for files and directories (respecting scan boundaries)
+4. Scan ~/.openclaw/ for all files and directories (respecting scan boundaries)
 5. Track all local paths seen during scan + any directories with read errors
 6. For each path found:
    a. Resolve backup strategy (exact match → parent walk → root default)
@@ -541,7 +534,7 @@ Cron runs the parent script hourly.
    - Pure bash + `aws s3api` — no Node.js/npm required
    - Downloads `backup-registry.json` from S3
    - Lists all **current** S3 objects in the bucket (ignores delete markers — deleted files are not restored)
-   - Downloads each to `~/<key>` (overwrites local)
+   - Downloads each to `~/.openclaw/<key>` (overwrites local)
    - Detects symlink metadata (`x-amz-meta-symlink-target`) → creates symlink instead of file
    - No hash checking — full overwrite by default, `--no-clobber` flag skips existing files
 6. Run repo restore: `scripts/restore-repos.sh`
@@ -607,7 +600,7 @@ The workspace `README.md` must document:
 - **Backup registry:** Local copy is authoritative, S3 copy is backup only. One writer, no conflicts. Three-state model (`github`/`s3`/`ignored`). Map-based schema for O(1) lookup.
 - **Unknown paths:** Resolved at runtime via parent walk, never persisted. Escalations batched — one file per run with all new paths. Root default: `s3`, no pruning.
 - **Ignored inheritance:** If parent is `ignored`, entire subtree is invisible — no scan, no backup, no escalation.
-- **S3 path structure:** S3 key = path relative to `~`. Mirrors the home directory. Dedicated bucket, supports paths both inside and outside `~/.openclaw/`.
+- **S3 path structure:** S3 key = path relative to `~/.openclaw/`. Dedicated bucket. Only `~/.openclaw/` paths are managed; external paths (e.g. databases) backed up separately.
 - **Two-phase sync:** Phase 1 (uploads) is best-effort — continues on individual failures. Phase 2 (delete markers) only if Phase 1 had zero failures. Bootstrap auto-detection: skip safety checks when S3 has <100 objects.
 - **Safety checks:** Minimum file count (90%), deletion ratio cap (10%), read-error prefix exclusion.
 - **Pruning safety:** Local files only pruned after confirming they exist in S3 with matching checksum. Pruning uses mtime for age calculation.
@@ -628,4 +621,4 @@ The workspace `README.md` must document:
 - **Registry location:** Local is authoritative. S3 is backup only. Not in git (may contain sensitive paths).
 - **Root-level files:** Explicit registry entries required for files at `~/.openclaw/` and `~/.openclaw/workspace/` roots. New root files trigger escalation with default `s3` rule. Treated like directories for detection purposes.
 - **Workspace memory:** Never pruned locally — needed for QMD access.
-- **Database backups:** SurrealDB dumps go to `~/surrealdb-backups/` and flow through the same sync pipeline via registry entry. S3 key mirrors the `~`-relative path.
+- **Database backups:** Not managed by this plan. SurrealDB and other databases are backed up separately, outside `~/.openclaw/`.
