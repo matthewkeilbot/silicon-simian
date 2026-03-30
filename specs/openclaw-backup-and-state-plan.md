@@ -36,17 +36,17 @@ Git serves two purposes: backup **and** open-source sharing. The workspace repo 
 
 ### S3 path structure
 
-S3 paths mirror the local filesystem exactly from `~/.openclaw/` as root. The S3 key for any file is its path relative to `~/.openclaw/`.
+S3 paths mirror the local filesystem. The S3 key for any file under `~/.openclaw/` is `.openclaw/` + its path relative to `~/.openclaw/`.
 
 ```
 Local:  ~/.openclaw/credentials/aws.json
-S3 key: credentials/aws.json
+S3 key: .openclaw/credentials/aws.json
 
 Local:  ~/.openclaw/workspace/MEMORY.md
-S3 key: workspace/MEMORY.md
+S3 key: .openclaw/workspace/MEMORY.md
 
 Local:  ~/.openclaw/openclaw.json
-S3 key: openclaw.json
+S3 key: .openclaw/openclaw.json
 ```
 
 This backup plan only manages paths under `~/.openclaw/`. However, the bucket can hold other data outside this scope — for example, database backups managed by their own process:
@@ -57,7 +57,7 @@ s3://BUCKET_NAME/surrealdb-backups/mydb-2026-03-30.tar.gz  (managed separately)
 
 The sync script ignores anything in the bucket that doesn't fall under its own key space. Other processes are free to write to the same bucket under their own prefixes.
 
-Restore is trivial: `s3://BUCKET_NAME/<key>` → write to `~/.openclaw/<key>`.
+Restore is trivial: `s3://BUCKET_NAME/.openclaw/<key>` → write to `~/.openclaw/<key>`.
 
 > **Note:** `BUCKET_NAME`, `AWS_PROFILE`, and `AWS_REGION` are bot-specific. See `README.md` for actual values.
 
@@ -236,8 +236,8 @@ These files live in S3 and are used by the backup/restore process. Documented he
 
 | S3 key | Local path | Purpose |
 |---|---|---|
-| `.openclaw/backup-registry.json` | `~/.openclaw/backup-registry.json` | Backup routing config. Local copy is authoritative. |
-| `.openclaw/workspace/repos.json` | `~/.openclaw/workspace/repos.json` | Manifest of git repos to clone on restore. |
+| `.openclaw/backup-registry.json` | `~/.openclaw/backup-registry.json` | Backup routing config. Local is authoritative. |
+| `.openclaw/workspace/repos.json` | `~/.openclaw/workspace/repos.json` | Manifest of git repos for restore. |
 
 ### repos.json schema
 
