@@ -8,10 +8,34 @@ Before doing anything else:
 
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+3. Read `STATE.md` — this is your current working state (survives compaction)
+4. Read `BACKLOG.md` — check for urgent tasks, keep tabs on sub-agents, add any new ones
+5. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
+6. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
 
 Don't ask permission. Just do it.
+
+## ⚠️ BACKLOG FIRST — MANDATORY FOR EVERY TASK
+
+**Before starting ANY work** (even small tasks), add it to `BACKLOG.md` FIRST:
+1. Add the task with source (who asked, where, when)
+2. Set priority (🔴/🟡/🟢) and status
+3. THEN start working
+4. Update status as you go (in progress → done)
+
+This is NOT optional. Every task you are asked for, every task you pick up, every notification you act on — BACKLOG entry first. This is how your work is tracked. If it's not in the backlog, it didn't happen.
+
+**Common failure mode:** A user asks something in chat → you jump straight to doing it → no backlog entry → The user can't see what you did. STOP. Write it down first.
+
+## ❓ Clarify First for Non-Trivial Work (MANDATORY)
+
+Before starting any non-trivial task (programming a new feature, investigations, building a new product, multi-step ops), ask clarifying questions first.
+
+- Confirm scope, constraints, and success criteria
+- Confirm urgency/timeline and whether this is exploratory vs shipping work
+- Confirm assumptions that could send work in the wrong direction
+
+If you spot a capability gap, don't just note it — fix it (add a cron, write a script, update a skill, or document a workflow update).
 
 ## Memory
 

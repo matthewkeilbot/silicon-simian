@@ -1,28 +1,13 @@
 # Memory System Specs (with SurrealDB)
 
-Goal: design a robust, low-friction memory system that keeps current OpenClaw strengths (daily notes + `MEMORY.md`) while adding a **first-class structured memory layer** using SurrealDB. The design still draws from Tiago Forte’s *Building a Second Brain* (CODE + PARA + progressive summarization) and OpenClaw’s existing optional QMD retrieval backend.
+Goal: design a robust, low-friction memory system that keeps current OpenClaw strengths (daily notes + `MEMORY.md`) while adding a **first-class structured memory layer** using SurrealDB. The design still draws from Tiago Forte’s *Building a Second Brain* (CODE + PARA + progressive summarization) and OpenClaw’s existing QMD retrieval backend.
 
 ## Core stance
 
 - **Markdown remains canonical and human-editable.**
-- **QMD remains the preferred hybrid text retrieval path** when available.
+- **QMD remains the preferred hybrid text retrieval path**.
 - **SurrealDB becomes the structured memory substrate** for temporal assertions, entities, provenance, summaries, and relationship-aware recall.
 - Not everything should be graphed. The graph/document layer is for **memory that benefits from structure**, not for turning every sentence into a tiny database tax form.
-
-## What changed in this branch
-
-Compared to the initial draft:
-
-- SurrealDB is no longer treated as a late optional experiment.
-- The spec now assumes a derived structured layer with these primary objects:
-  - `episode`
-  - `entity`
-  - `assertion`
-  - `summary`
-  - relation records for provenance, supersession, contradiction, and relevance
-- Retrieval is now modeled as a **two-plane system**:
-  1. text recall (Markdown + QMD/builtin memory search)
-  2. structured recall (SurrealDB assertions/entities/summaries)
 
 ## Operating Assumption: Orchestrator-First Execution
 
