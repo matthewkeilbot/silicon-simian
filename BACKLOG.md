@@ -11,3 +11,4 @@
 - [x] 🟢 2026-04-22 cron: Run `scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; synced upstream changes into `gstack` and `paperclip`
 - [x] 🟢 2026-04-23 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — done, still OPEN
 - [x] 🟢 2026-04-23 cron: Run `scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; synced upstream changes into `gstack` and `paperclip`
+- [x] 🟢 2026-04-24 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — done, still OPEN
