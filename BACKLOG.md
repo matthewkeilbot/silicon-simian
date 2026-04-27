@@ -21,3 +21,5 @@
 - [x] 🟢 2026-04-27 cron: Run `scripts/git-status-report.sh` for workspace root repo only and prepare report for Matthew in MEK topic 101 (`weekly-git-status-report`) — done; workspace root repo is dirty (1 uncommitted change); report prepared for MEK Telegram topic 101
 - [x] 🟢 2026-04-27 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — done, still OPEN
 - [x] 🟢 2026-04-27 cron: Run `scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; synced upstream changes into `gstack` and `paperclip`
+- [x] 🟢 2026-04-27 Telegram group MEK topic 1868: Matt asked whether I can read an Instagram post at https://www.instagram.com/p/DXcsBsRFZJ0/?img_index=6&igsh=MXdqN3phOXJoeDA2MQ== — done; browser snapshot could read the public caption text and some comments
+- [x] 🟢 2026-04-27 Telegram group MEK topic 1868: Matt asked me to analyze the pictures/prompts from the Instagram post and save them to `specs/nutrition/prompt-ideas/` — done; saved first-pass analysis to `specs/nutrition/prompt-ideas/README.md` and `specs/nutrition/prompt-ideas/instagram-post-analysis.md`
