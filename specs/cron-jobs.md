@@ -44,7 +44,7 @@ Overview of all scheduled jobs running in the workspace.
 | **Schedule** | `0 9 * * 1` Asia/Bangkok (Monday 9am ICT) |
 | **Model** | haiku |
 | **Session** | isolated |
-| **Delivery** | Announced to MEK Telegram topic 101 |
+| **Delivery** | Announced to MEK Telegram topic 1884 (Notifications) |
 | **Purpose** | Runs `scripts/git-status-report.sh` for the workspace root repo (silicon-simian) and sends a status report. Highlights uncommitted/unpushed changes. |
 
 **Report format — high-level inventory of repo root:**
