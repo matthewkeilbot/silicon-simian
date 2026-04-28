@@ -3,30 +3,48 @@ set -euo pipefail
 
 # Unlock Bitwarden CLI using API key env vars plus a master password fetched at runtime.
 # Expected env:
-#   BW_CLIENTID
-#   BW_CLIENTSECRET
+#   BW_CLIENT_ID or BW_CLIENTID
+#   BW_CLIENT_SECRET or BW_CLIENTSECRET
 # Optional env:
+#   BW_SCOPE          default: api
+#   BW_GRANT_TYPE     default: client_credentials
 #   BW_PASSWORD_CMD   command that prints the Bitwarden master password
 #   BW_PASSWORD       fallback plaintext env var (discouraged)
 #   BW_SESSION_CACHE  path to write the session token (default: ~/.openclaw/credentials/bitwarden-session)
 #   BW_PASSWORD_ATTR_SERVICE (default: bitwarden)
-#   BW_PASSWORD_ATTR_ACCOUNT (default: mekbot)
+#   BW_PASSWORD_ATTR_ACCOUNT (default: openclaw)
 #
 # Default password lookup behavior:
 #   If secret-tool exists, use:
 #     secret-tool lookup service "$BW_PASSWORD_ATTR_SERVICE" account "$BW_PASSWORD_ATTR_ACCOUNT"
 #   Otherwise, require BW_PASSWORD_CMD or BW_PASSWORD.
 
-require() {
-  local name="$1"
-  if [[ -z "${!name:-}" ]]; then
-    echo "ERROR: required env var $name is not set" >&2
-    exit 1
-  fi
+first_set() {
+  for name in "$@"; do
+    if [[ -n "${!name:-}" ]]; then
+      printf '%s' "${!name}"
+      return 0
+    fi
+  done
+  return 1
 }
 
-require BW_CLIENTID
-require BW_CLIENTSECRET
+BW_CLIENTID="$(first_set BW_CLIENT_ID BW_CLIENTID || true)"
+BW_CLIENTSECRET="$(first_set BW_CLIENT_SECRET BW_CLIENTSECRET || true)"
+BW_SCOPE="${BW_SCOPE:-api}"
+BW_GRANT_TYPE="${BW_GRANT_TYPE:-client_credentials}"
+
+if [[ -z "$BW_CLIENTID" ]]; then
+  echo "ERROR: required env var BW_CLIENT_ID or BW_CLIENTID is not set" >&2
+  exit 1
+fi
+
+if [[ -z "$BW_CLIENTSECRET" ]]; then
+  echo "ERROR: required env var BW_CLIENT_SECRET or BW_CLIENTSECRET is not set" >&2
+  exit 1
+fi
+
+export BW_CLIENTID BW_CLIENTSECRET BW_SCOPE BW_GRANT_TYPE
 
 if ! command -v bw >/dev/null 2>&1; then
   echo "ERROR: bw CLI is not installed or not on PATH" >&2
@@ -34,7 +52,7 @@ if ! command -v bw >/dev/null 2>&1; then
 fi
 
 BW_PASSWORD_ATTR_SERVICE="${BW_PASSWORD_ATTR_SERVICE:-bitwarden}"
-BW_PASSWORD_ATTR_ACCOUNT="${BW_PASSWORD_ATTR_ACCOUNT:-mekbot}"
+BW_PASSWORD_ATTR_ACCOUNT="${BW_PASSWORD_ATTR_ACCOUNT:-openclaw}"
 BW_SESSION_CACHE="${BW_SESSION_CACHE:-$HOME/.openclaw/credentials/bitwarden-session}"
 
 get_password() {
