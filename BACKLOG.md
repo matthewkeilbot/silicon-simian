@@ -32,3 +32,4 @@
 - [x] 🟢 2026-04-30 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — done, still OPEN
 - [x] 🟢 2026-04-30 cron: Run `scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; synced upstream changes into `paperclip`
 - [x] 🟢 2026-05-03 cron: Run `scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; synced new changes from upstream into `gstack` and `paperclip`
+- [ ] 🟡 2026-05-05 Telegram group MEK topic 1975: Matt asked for help with `notyour.eth` grace-period timing / registration plan — in progress
