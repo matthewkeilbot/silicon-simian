@@ -36,3 +36,4 @@
 - [ ] 🔴 2026-05-05 Telegram group MEK topic 1975: Matt asked for help with `notyour.eth` automation, standalone repo, and tested ENS drop bot — in progress
 - [x] 🟢 2026-06-21 cron: Run `scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream but push to origin/master was rejected because remote has commits not present locally (`fetch first`)
 - [ ] 🟢 2026-06-22 cron: Run `~/.openclaw/workspace/scripts/git-status-report.sh` for workspace root repo only (`weekly-git-status-report`) and prepare nicely formatted report for Matthew in MEK Telegram Notifications topic 1884 — in progress
+- [x] 🟢 2026-06-22 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — done, MERGED at 2026-06-07T12:14:06Z
