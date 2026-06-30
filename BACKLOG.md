@@ -1,6 +1,7 @@
 # BACKLOG
 
 - [ ] 🟢 2026-06-30 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — in progress
+- [x] 🟢 2026-06-30 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream, fetched new upstream branches/tags, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local branch is now ahead of origin by 306 commits
 - [x] 🟢 2026-04-19 cron: Run `scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done
 - [x] 🟢 2026-04-19 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — done, still OPEN
 - [x] 🟢 2026-04-20 cron: Run `scripts/git-status-report.sh` for workspace root repo only and prepare report for Matthew in MEK topic 101 (`weekly-git-status-report`) — done; report generated, workspace root repo is dirty (1 uncommitted change)
