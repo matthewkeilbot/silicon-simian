@@ -1,5 +1,6 @@
 # BACKLOG
 
+- [x] 🟢 2026-07-01 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream, fetched new upstream branches/tags, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local branch is now ahead of origin by 310 commits
 - [ ] 🟡 2026-06-30 Telegram group MEK topic 2033: Matt asked me to help dial in a personal strength & conditioning coach system prompt, define files/workflow, and ask the right clarifying questions — in progress
 - [x] 🟢 2026-06-30 Telegram group MEK topic 2033: Matt asked me to coach/log his gym session live and write everything down — done; chest press machine stack `15 x 10 @6`, `17.5 x 10 @8`, `17.5 x 10 @8`; seated cable row `35kg x 10 @8`, `35kg x 10 @9`, `35kg x 10 @9`; incline DB press `20 x 5 @10`, `16 x 10 @9.5`, `16 x 5 @10`, `12 x 10 @9.5`; lat pulldown `37.5kg x 12 @8`, `42.5 x 7 @9`, `37.5 x 10 @10`; DB lateral raise `6 x 14 @7`, `6 x 17 @8`; plank `50s @8.5`, `30s @9`
 
