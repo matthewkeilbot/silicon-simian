@@ -1,5 +1,6 @@
 # BACKLOG
 
+- [ ] 🟢 2026-07-02 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — in progress
 - [x] 🟢 2026-07-01 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream, fetched new upstream branches/tags, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local branch is now ahead of origin by 310 commits
 - [ ] 🟡 2026-06-30 Telegram group MEK topic 2033: Matt asked me to help dial in a personal strength & conditioning coach system prompt, define files/workflow, and ask the right clarifying questions — in progress
 - [x] 🟢 2026-07-01 Telegram group MEK topic 2033: Matt asked me to create a Matt-specific workout coaching/logging skill for repeated use — done; created `skills/workout-coach-matt/` with live coaching + workout-doc logging workflow and pragmatic shorthand parsing notes
