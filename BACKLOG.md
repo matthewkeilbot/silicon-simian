@@ -1,5 +1,6 @@
 # BACKLOG
 
+- [ ] 🟢 2026-07-03 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — in progress
 - [ ] 🟢 2026-07-02 cron: Check status of GitHub PR ChainSafe/lodestar#8837 (`watch-lodestar-fcr-pr-8837`) — in progress
 - [x] 🟢 2026-07-02 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream, fetched new upstream branches/tags, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local branch is now ahead of origin by 328 commits
 - [x] 🟢 2026-07-01 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream, fetched new upstream branches/tags, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local branch is now ahead of origin by 310 commits
