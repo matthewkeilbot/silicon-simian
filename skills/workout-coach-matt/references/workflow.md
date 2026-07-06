@@ -122,7 +122,7 @@ One-shot reminder model:
   - T-2h reminder
   - T-30m reminder
   - on-time guilt-trip check if no `leaving now`
-  - later missed-workout check
+  - 23:00 ICT missed-workout check
 - if Matt changes the workout time, reschedule the one-shot jobs and treat the newest time as truth
 
 Pre-workout reminder rules:

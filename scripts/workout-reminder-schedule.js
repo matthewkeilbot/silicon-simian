@@ -83,7 +83,7 @@ async function main() {
   const twoHourAt = buildIsoForIct(date, offsetTime(time, -120));
   const thirtyAt = buildIsoForIct(date, offsetTime(time, -30));
   const guiltAt = buildIsoForIct(date, offsetTime(time, 0));
-  const missedAt = buildIsoForIct(date, offsetTime(time, 180));
+  const missedAt = buildIsoForIct(date, "23:00");
 
   state.twoHourReminderJobId = await addOneShot({
     name: `workout-reminder-2h-${date}`,

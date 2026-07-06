@@ -4,8 +4,14 @@
   "notes": [
     "Scheduled workout at 18:00 ICT",
     "Scheduled one-shot reminders for 18:00 ICT",
-    "Cleared reminder job ids"
+    "Cleared reminder job ids",
+    "Scheduled one-shot reminders for 18:00 ICT",
+    "Scheduled one-shot reminders for 18:00 ICT"
   ],
   "scheduledWorkoutTimeIct": "18:00",
-  "lastSourceMessageId": "test"
+  "lastSourceMessageId": "test",
+  "twoHourReminderJobId": "2b8119ce-ff50-4e6f-96e5-7a0a7942b52a",
+  "thirtyMinuteReminderJobId": "21c660bb-03ed-4f7f-9ca2-16a00bd284eb",
+  "guiltTripJobId": "e8f97188-829a-4be4-b3da-48f69971beb6",
+  "missedCheckJobId": "df5e4977-2d2e-425f-850c-2e2ff8dce7cc"
 }
