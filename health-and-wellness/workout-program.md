@@ -1,7 +1,7 @@
 # Workout Program
 
 ## Program Philosophy
-- Goal hierarchy: consistency first, fat loss second, performance improvement third
+- Goal hierarchy: consistency first, fat loss second, 10k run capacity third, performance improvement fourth
 - Form before load
 - Conservative progressive overload
 - Protect lower back and left shoulder
@@ -44,6 +44,7 @@
 
 ### Day 3 — Run / Recovery
 - Easy outdoor run or incline walk
+- Build aerobic base for 10k goal; keep most runs conversational
 - Mobility work
 - Optional soft tissue / shoulder care
 
@@ -67,6 +68,7 @@
 
 ### Day 6 — Run / Recovery
 - Easy/moderate run based on recovery
+- Bias toward gradual 10k build, not pace heroics
 - Mobility / tissue work
 
 ### Day 7 — Rest
@@ -83,6 +85,7 @@
 - Lower body compounds: same rule, conservative jumps only
 - Accessories: progress reps before load when possible
 - Running: progress mostly through consistency and small distance/time improvements, not ego pace chasing
+- Running bias: build durable weekly running consistency first, then extend easy-run duration toward 10k readiness
 
 ## Initial Exercise Selection
 ### Upper A
@@ -125,8 +128,15 @@
 - Stop any movement that causes sharp pain, nerve symptoms, or shoulder pinching
 
 ## Open Items To Confirm
-- Exact leave/workout times for each training day
 - Exact first-session baseline menu execution notes
-- Whether reminders should be handled manually in chat or via automation
+- Preferred 10k timeline / target date
 
-Last updated: 2026-06-30
+## Reminder Workflow
+- Daily 10:00 ICT check-in should ask about health/recovery first.
+- On workout days, ask what time the workout is scheduled.
+- Trigger a 2-hour pre-workout reminder and a 30-minute pre-workout reminder.
+- If no `leaving now` message arrives after the 30-minute reminder window, send a guilt-trip nudge about not showing up for himself.
+- If no workout gets logged, mention the miss in the next morning check-in.
+- On rest days, steer toward the correct recovery path based on how he feels: rest, walk, mobility/yoga, massage, or similar low-cost recovery work.
+
+Last updated: 2026-07-06

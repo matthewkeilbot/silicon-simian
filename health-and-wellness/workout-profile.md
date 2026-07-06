@@ -7,6 +7,7 @@
 - Current bodyweight: TBD (first logged gym weigh-in)
 - Training status: Beginner / returning to structured training
 - Primary current goal: Fat loss
+- Secondary current goal: Build toward completing a 10k run
 - Long-term goal: Lifelong health, mobility, and full-body functional strength
 - Training availability: 5–6 days/week, ~60 min/session
 - Equipment: Full commercial gym + outdoor running
@@ -72,4 +73,5 @@ Track and update when achieved:
 
 ## Current Status
 - Current program block: Block 1 (TBD after first planning pass)
-- Last updated: 2026-06-30
+- Running goal status: working toward a 10k base safely through consistent easy runs and recovery-aware progression
+- Last updated: 2026-07-06

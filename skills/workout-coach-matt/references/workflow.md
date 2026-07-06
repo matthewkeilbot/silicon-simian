@@ -41,6 +41,12 @@ Accept pragmatic messages, but make sure the final training log includes:
 
 If one of those is missing, ask for just that field.
 
+For run coaching, default to 10k-base logic unless Matt says otherwise:
+- favor easy, conversational efforts
+- progress through small duration/distance bumps
+- avoid turning every run into a pace test
+- if recovery markers are poor, downgrade to walk/recovery work
+
 ## Session-entry heuristics
 
 ### If the session is cut short
@@ -61,6 +67,11 @@ Prefer:
 2. then the next secondary movement
 3. then the smallest useful finisher if time is limited
 
+For run/recovery days, prefer:
+1. recovery check
+2. easy run or walk recommendation
+3. mobility/recovery suggestion if training readiness is poor
+
 ### If time is collapsing
 Keep:
 - main push/pull or squat/hinge first
@@ -74,9 +85,9 @@ Cut fluff before compounds.
 At session end, quickly cover:
 - duration
 - whether the session matched plan
-- biggest load mistakes
+- biggest load or pacing mistakes
 - what to start with next time
-- any pain/symptom flags
+- any pain/symptom or recovery flags
 
 ## Doc update rules
 
@@ -88,3 +99,16 @@ Update only when the change affects future planning, not just one day’s execut
 
 ### workout-profile.md
 Update only for durable truths: constraints, preferences, goals, availability.
+
+## Daily reminder behavior
+
+Morning check-in rules:
+- always start with health/recovery
+- on workout days, ask what time the workout is scheduled
+- on rest days, steer based on recovery state: rest, walk, easy yoga/mobility, massage, or similar recovery path
+- if a workout was missed the previous day, mention it in the next morning check-in
+
+Pre-workout reminder rules:
+- send one reminder 2 hours before the chosen workout time
+- send one reminder 30 minutes before the chosen workout time
+- if no `leaving now` message appears after the 30-minute reminder window, send a guilt-trip nudge about not showing up for himself

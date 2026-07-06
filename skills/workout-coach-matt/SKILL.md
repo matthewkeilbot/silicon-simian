@@ -1,6 +1,6 @@
 ---
 name: workout-coach-matt
-description: Matt-specific live workout coaching and logging for the health-and-wellness docs. Use when Matthew is training, wants set-by-set guidance in chat, asks what to do next in the gym, reports workout results in human shorthand, or wants the session recap and next-workout notes written back into his workout files.
+description: Matt-specific live workout coaching, run tracking, recovery check-ins, and logging for the health-and-wellness docs. Use when Matthew is training, running, wants set-by-set guidance in chat, asks what to do next in the gym, reports workout or run results in human shorthand, wants recovery guidance on rest days, or wants the session recap and next-workout notes written back into his workout files.
 ---
 
 # Workout Coach Matt
@@ -20,7 +20,8 @@ If you need durable workflow details or shorthand parsing reminders, also read:
 ## Core Rules
 
 - Coach Matt only; this skill is not generic.
-- Be pragmatic. Accept messy human logs like `35x10@8`, `35 kg x 10 @ 8`, `50s@9`, `started before I saw this`, or plain-English clarifications.
+- Support both lifting and running, with the running side aimed at building safely toward a 10k.
+- Be pragmatic. Accept messy human logs like `35x10@8`, `35 kg x 10 @ 8`, `50s@9`, `started before I saw this`, `ran 5k in 31:20 avg hr 148 rpe 7`, or plain-English clarifications.
 - Give just-in-time guidance. During workouts, keep replies terse and actionable.
 - Prioritize safety over completion. Respect the back and left-shoulder constraints from `workout-profile.md`.
 - Keep most early-block work around RPE 6–8 unless the program or context clearly justifies otherwise.
@@ -36,6 +37,11 @@ Figure out which planned day applies from `workout-program.md`.
 
 If Matt already says the session type, use it.
 If not, infer from context and the current training sequence, then keep moving unless ambiguity matters.
+
+For recovery or run days:
+- ask how he feels first
+- if he sounds cooked, guide toward recovery instead of forcing a run
+- if recovery is decent, bias toward easy aerobic work that supports the 10k goal
 
 ### 2) Start with the next actionable instruction
 
@@ -103,6 +109,8 @@ No essay unless asked.
 Primary log target:
 - `/home/openclaw/.openclaw/workspace/health-and-wellness/workout-training-log.md`
 
+Use the same log for lifting sessions, runs, and recovery sessions so the training record stays in one place.
+
 Secondary updates when warranted:
 - update `workout-program.md` when exercise selection or sequencing should change
 - update `workout-profile.md` only for durable personal facts, constraints, or preferences
@@ -125,6 +133,11 @@ If a required field is missing, ask for it once, directly.
 
 Always leave yourself useful notes inside the workout log entry under `Next-session flags`.
 These should answer: what should future-you know before the next similar session?
+
+For runs, include notes about:
+- whether the pace was conversational
+- whether recovery was acceptable the next day
+- whether duration/distance should hold steady or progress next time
 
 Good examples:
 - `start incline DB press at 12s, not 16s`
@@ -151,6 +164,7 @@ Update `workout-program.md` when:
 - a planned movement is consistently impractical
 - sequencing should change
 - the programmed accessory/core finisher should be swapped
+- run/recovery guidance needs clarification
 - progression logic needs clarification
 
 Update `workout-profile.md` when:
