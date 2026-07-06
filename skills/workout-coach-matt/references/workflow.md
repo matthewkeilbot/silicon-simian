@@ -63,14 +63,16 @@ Use `Next-session flags` to leave a smarter starting point.
 
 ### If Matt asks for “what next?”
 Prefer:
-1. the next main programmed movement
-2. then the next secondary movement
-3. then the smallest useful finisher if time is limited
+1. write his latest entry to disk first
+2. give exactly one next movement, not a menu
+3. include brief form notes for that movement
+4. then move to the next programmed movement after he reports the set(s)
 
 For run/recovery days, prefer:
-1. recovery check
-2. easy run or walk recommendation
-3. mobility/recovery suggestion if training readiness is poor
+1. write his latest entry to disk first
+2. recovery check
+3. easy run or walk recommendation
+4. mobility/recovery suggestion if training readiness is poor
 
 ### If time is collapsing
 Keep:
@@ -93,6 +95,7 @@ At session end, quickly cover:
 
 ### workout-training-log.md
 Always update after a real session.
+For live sessions, also update immediately after each new activity entry instead of waiting until the end.
 
 ### workout-program.md
 Update only when the change affects future planning, not just one day’s execution.

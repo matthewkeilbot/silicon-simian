@@ -56,6 +56,42 @@ Strict rule: do not add a session entry until all required fields are present.
 
 ---
 
+## 2026-07-06 — Session Type (Upper B)
+- Planned session: Lower A + core, switched to Upper B + core because legs were sore from the 2026-07-05 run.
+- Completed session: In progress
+- Start time: TBD
+- Duration: In progress
+- Energy before training (1–10): TBD
+- Notes: Session pivoted away from lower body due to sore legs from yesterday's run.
+
+#### Warm-up
+- Jog: 1.27 km in 10:08
+- Face pull: 5 kg × 20 @ 3
+- Cable rotations (internal + external): 2.5 kg × 18 @ 3
+
+#### Exercise Log
+- Machine shoulder press
+  - Set 1: 17.5 × 22 @ 8
+  - Set 2: 22.5 × 10 @ 8
+  - Set 3: 22.5 × 7 @ 9 (8th rep not completed with good form)
+- Machine chest-supported low row
+  - Set 1: 20 × 18 @ 7
+  - Set 2: 30 × 14 @ 8
+  - Set 3: 30 × 12 @ 8
+
+#### Run Log (if relevant)
+- None
+
+#### Pain / Symptom Notes
+- Legs sore from yesterday's run. No acute upper-body pain reported yet.
+
+#### Session Outcome
+- Completed as planned: TBD
+- PRs hit: none yet
+- Next-session flags: TBD
+
+---
+
 ## 2026-07-05 — Session Type (Run)
 - Planned session: Run / Recovery
 - Completed session: Outdoor run
