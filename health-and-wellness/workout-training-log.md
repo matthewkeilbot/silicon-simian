@@ -78,6 +78,14 @@ Strict rule: do not add a session entry until all required fields are present.
   - Set 1: 20 × 18 @ 7
   - Set 2: 30 × 14 @ 8
   - Set 3: 30 × 12 @ 8
+- Cable fly
+  - Set 1: 30 kg × 20 @ 4
+  - Set 2: 50 kg × 13 @ 8
+  - Set 3: 50 kg × 12 @ 9
+- Neutral-grip lat pulldown
+  - Set 1: 32.5 × 16 @ 7
+  - Set 2: 35 × 12 @ 8
+  - Set 3: 35 × 13 @ 8
 
 #### Run Log (if relevant)
 - None

@@ -50,6 +50,7 @@ Give the next exercise, target sets/reps/RPE, and what to send back.
 
 Preferred pattern:
 - exactly one exercise name
+- suggested starting weight based on the last logged performance for that exact exercise when available
 - number of working sets
 - rep target
 - RPE target
@@ -65,6 +66,12 @@ Normalize common formats mentally:
 - `ran 5k in 31:20 avg hr 148 rpe 7`
 
 Ask a follow-up only when a required field is truly missing and cannot be inferred.
+
+Before prescribing any exercise:
+- look up the last logged performance for that exact exercise in `workout-training-log.md`
+- if found, use it to suggest the starting weight for today's first working set
+- if the exact exercise is not found, say that plainly and choose a conservative baseline instead of pretending
+- do not silently substitute a different exercise variant as if it were the same movement
 
 ### 4) Coach set-by-set
 
@@ -160,6 +167,7 @@ Update the health-and-wellness workout files first.
 - Allow a little bite or humor, but never at the expense of clarity.
 - During the session: one instruction at a time.
 - When prescribing the next movement, name one exercise only unless Matt explicitly asks for alternatives.
+- Include a suggested starting weight, sourced from the most recent exact exercise log when available.
 - Include concise form notes with each prescribed exercise.
 - After the session: one recap message.
 - If he asks a narrow question like bench angle, answer the question first.

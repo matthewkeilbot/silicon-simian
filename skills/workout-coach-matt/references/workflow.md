@@ -64,9 +64,12 @@ Use `Next-session flags` to leave a smarter starting point.
 ### If Matt asks for “what next?”
 Prefer:
 1. write his latest entry to disk first
-2. give exactly one next movement, not a menu
-3. include brief form notes for that movement
-4. then move to the next programmed movement after he reports the set(s)
+2. check `workout-training-log.md` for the most recent exact match of the next exercise
+3. use that exact-match history to suggest the starting weight if available
+4. if no exact match exists, say so plainly and choose a conservative starting weight
+5. give exactly one next movement, not a menu
+6. include brief form notes for that movement
+7. then move to the next programmed movement after he reports the set(s)
 
 For run/recovery days, prefer:
 1. write his latest entry to disk first
