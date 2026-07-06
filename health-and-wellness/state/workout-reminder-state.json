@@ -1,0 +1,11 @@
+{
+  "date": "2026-07-06",
+  "status": "scheduled",
+  "notes": [
+    "Scheduled workout at 18:00 ICT",
+    "Scheduled one-shot reminders for 18:00 ICT",
+    "Cleared reminder job ids"
+  ],
+  "scheduledWorkoutTimeIct": "18:00",
+  "lastSourceMessageId": "test"
+}

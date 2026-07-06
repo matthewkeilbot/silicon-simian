@@ -108,7 +108,25 @@ Morning check-in rules:
 - on rest days, steer based on recovery state: rest, walk, easy yoga/mobility, massage, or similar recovery path
 - if a workout was missed the previous day, mention it in the next morning check-in
 
+State file:
+- `/home/openclaw/.openclaw/workspace/health-and-wellness/state/workout-reminder-state.json`
+- maintain it with:
+  - `npm run workout:schedule -- --time HH:MM` when the workout time becomes known or changes
+  - `npm run workout:state -- --mode rest`
+  - `npm run workout:state -- --mode left`
+  - `npm run workout:state -- --mode logged`
+  - `npm run workout:state -- --mode infer-from-log`
+
+One-shot reminder model:
+- when a workout time is known, create four one-shot crons for that date:
+  - T-2h reminder
+  - T-30m reminder
+  - on-time guilt-trip check if no `leaving now`
+  - later missed-workout check
+- if Matt changes the workout time, reschedule the one-shot jobs and treat the newest time as truth
+
 Pre-workout reminder rules:
 - send one reminder 2 hours before the chosen workout time
 - send one reminder 30 minutes before the chosen workout time
 - if no `leaving now` message appears after the 30-minute reminder window, send a guilt-trip nudge about not showing up for himself
+- if the workout is still not logged much later, mark it missed in state so the next morning check-in can mention it
