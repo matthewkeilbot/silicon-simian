@@ -116,6 +116,19 @@ State file:
   - `npm run workout:state -- --mode left`
   - `npm run workout:state -- --mode logged`
   - `npm run workout:state -- --mode infer-from-log`
+  - `npm run workout:state -- --mode session-mode --value context-or-confirm` or `confirm`
+  - `npm run workout:state -- --mode planned-session --value "..."`
+  - `npm run workout:state -- --mode morning-context --value "..."`
+
+Before coaching after `leaving now`, read the state file and check:
+- `sessionSelectionMode`
+- `plannedSessionType`
+- `morningContextSummary`
+- `nextCoachAction`
+
+Default behavior:
+- use morning context if available
+- otherwise confirm today's session type before starting live coaching
 
 One-shot reminder model:
 - when a workout time is known, create four one-shot crons for that date:

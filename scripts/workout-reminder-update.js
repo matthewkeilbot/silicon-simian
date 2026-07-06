@@ -13,6 +13,12 @@ function appendNote(notes, note) {
   return next.slice(-20);
 }
 
+function normalizeSessionSelectionMode(value) {
+  if (!value) return "context-or-confirm";
+  if (["confirm", "context-or-confirm"].includes(value)) return value;
+  throw new Error(`Invalid session selection mode: ${value}`);
+}
+
 async function main() {
   const mode = getArg("mode");
   const value = getArg("value");
@@ -30,6 +36,7 @@ async function main() {
       state.lastSourceMessageId = messageId;
       state.leavingNowReceivedAt = undefined;
       state.workoutLoggedAt = undefined;
+      state.nextCoachAction = "on leaving now, use morning context if available; otherwise confirm today's session before coaching";
       state.notes = appendNote(state.notes, `Scheduled workout at ${value} ICT`);
       break;
     case "rest":
@@ -47,7 +54,11 @@ async function main() {
     case "left":
       state.status = "left";
       state.leavingNowReceivedAt = new Date().toISOString();
+      state.coachingTriggeredAt = new Date().toISOString();
       state.lastSourceMessageId = messageId;
+      state.nextCoachAction = state.sessionSelectionMode === "confirm"
+        ? "confirm today's session type, then start coaching"
+        : "use morning context if available; otherwise confirm today's session type, then start coaching";
       state.notes = appendNote(state.notes, "Received leaving now");
       break;
     case "logged":
@@ -80,6 +91,21 @@ async function main() {
       state.guiltTripJobId = undefined;
       state.missedCheckJobId = undefined;
       state.notes = appendNote(state.notes, "Cleared reminder job ids");
+      break;
+    }
+    case "session-mode": {
+      state.sessionSelectionMode = normalizeSessionSelectionMode(value);
+      state.notes = appendNote(state.notes, `Session selection mode set to ${state.sessionSelectionMode}`);
+      break;
+    }
+    case "planned-session": {
+      state.plannedSessionType = value;
+      state.notes = appendNote(state.notes, `Planned session set to ${value}`);
+      break;
+    }
+    case "morning-context": {
+      state.morningContextSummary = value;
+      state.notes = appendNote(state.notes, "Updated morning context summary");
       break;
     }
     default:
