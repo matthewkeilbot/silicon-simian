@@ -56,6 +56,37 @@ Strict rule: do not add a session entry until all required fields are present.
 
 ---
 
+## 2026-07-07 — Session Type (Run / Recovery)
+- Planned session: Recovery-biased treadmill run or incline walk to clear head, plus optional sauna and light core.
+- Completed session: Treadmill run
+- Start time: TBD
+- Duration: 27:07
+- Energy before training (1–10): TBD
+- Notes: Very sore day with mental health not great; used easy treadmill work to clear head. Sauna was being considered but not confirmed.
+
+#### Warm-up
+- Not separately logged
+
+#### Exercise Log
+- None logged yet
+
+#### Run Log (if relevant)
+- Distance: 3.11 km
+- Duration: 27:07
+- Pace: 8:43 / km
+- Avg HR: 136 bpm
+- RPE: 7
+
+#### Pain / Symptom Notes
+- General soreness reported before session. No acute injury symptoms logged.
+
+#### Session Outcome
+- Completed as planned: yes
+- PRs hit: none logged
+- Next-session flags: keep recovery runs truly easy; if the main goal is head-clearing on sore days, incline walk is acceptable instead of forcing a run. If doing light core after, prefer dead bug and side plank.
+
+---
+
 ## 2026-07-06 — Session Type (Upper B)
 - Planned session: Lower A + core, switched to Upper B + core because legs were sore from the 2026-07-05 run.
 - Completed session: In progress
