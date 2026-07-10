@@ -56,6 +56,37 @@ Strict rule: do not add a session entry until all required fields are present.
 
 ---
 
+## 2026-07-10 — Session Type (Run / Recovery)
+- Planned session: Gym was closed, so pivot to a run with optional lower-body exercises mixed in.
+- Completed session: Outdoor run
+- Start time: TBD
+- Duration: 1:10:00
+- Energy before training (1–10): TBD
+- Notes: Busy day delayed training until late. Asked about mixing lower-body work into the run, but only the run was confirmed afterward.
+
+#### Warm-up
+- Not separately logged
+
+#### Exercise Log
+- No lower-body accessory work confirmed in final log
+
+#### Run Log (if relevant)
+- Distance: 6.3 km
+- Duration: 1:10:00
+- Pace: 10:00 / km
+- Avg HR: 137 bpm
+- RPE: 7
+
+#### Pain / Symptom Notes
+- No pain reported in-chat.
+
+#### Session Outcome
+- Completed as planned: yes
+- PRs hit: Running distance PR
+- Next-session flags: solid longer easy-effort outing; keep easy runs conversational and don’t worry about pace. If mixing leg work into future runs, log the exact movements and reps so the session can be tracked cleanly.
+
+---
+
 ## 2026-07-07 — Session Type (Run / Recovery)
 - Planned session: Recovery-biased treadmill run or incline walk to clear head, plus optional sauna and light core.
 - Completed session: Treadmill run
