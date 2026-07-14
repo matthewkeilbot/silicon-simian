@@ -1,5 +1,7 @@
 # BACKLOG
 
+- [x] 🟢 2026-07-14 Discord channel #lodekeeper-z-permission-verification thread "lodekeeper-z permission verification": Respond to @mention test for permission verification — done
+- [x] 🟢 2026-07-14 Discord channel #lodekeeper-z-permission-verification thread "lodekeeper-z permission verification": Reply to test message for permission verification — done
 - [ ] 🟢 2026-07-14 cron: Send Matt the daily 10:00 ICT workout check-in for MEK Telegram topic 2033 (`workout-morning-checkin`) — in progress
 - [x] 🟢 2026-07-14 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream, fetched new upstream branches/tags, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local branch is now ahead of origin by 492 commits
 - [x] 🟢 2026-07-13 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; pulled `lodekeeper` and `lodekeeper-z`; `gstack` already up to date; `paperclip` fast-forwarded from upstream, fetched new upstream branches/tag, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local branch is now ahead of origin by 487 commits
