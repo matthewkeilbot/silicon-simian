@@ -1,5 +1,6 @@
 # BACKLOG
 
+- [x] 🟢 2026-07-15 cron: Run `/home/openclaw/.openclaw/workspace/scripts/pull-tracked-repos.sh` and report summary (`pull-tracked-repos`) — done; `lodekeeper`, `lodekeeper-z`, and `gstack` are clean and up to date; `paperclip` fast-forwarded massive upstream changes, but push to `origin/master` was rejected because remote has commits not present locally (`fetch first`); local `paperclip` remains clean and is now ahead of `origin/master` by 532 commits
 - [x] 🟢 2026-07-14 Discord channel #lodekeeper-z-permission-verification thread "lodekeeper-z permission verification": Respond to @mention test for permission verification — done
 - [x] 🟢 2026-07-14 Discord channel #lodekeeper-z-permission-verification thread "lodekeeper-z permission verification": Reply to test message for permission verification — done
 - [x] 🟢 2026-07-15 cron: Send Matt the daily 10:00 ICT workout check-in for MEK Telegram topic 2033 (`workout-morning-checkin`) — done; recovery/rest day based on weekly template (Wednesday optional recovery), recent log shows last confirmed activity was 2026-07-10 run, and no 2026-07-14 workout log exists so the check-in should briefly mention yesterday was missed if he meant to train
