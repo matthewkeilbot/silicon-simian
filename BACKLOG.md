@@ -1,5 +1,7 @@
 # BACKLOG
 
+- [ ] 🟢 2026-08-08 cron: Send Matt the daily 10:00 ICT workout check-in for MEK Telegram topic 2033 (`workout-morning-checkin`) — in progress; Saturday is full rest in the weekly template, no 2026-08-07 workout log exists so briefly note yesterday stayed empty if he meant to train, lead with recovery first, ask how he feels, and steer toward the best recovery option for today
+
 - [ ] 🟢 2026-08-07 Discord channel #no-hoo: User requested passive participation permission for channel <#1486292722204676096> without explicit mentions/replies — pending control-plane approval request
 
 - [x] 🟢 2026-08-07 cron: Send Matt the daily 10:00 ICT workout check-in for MEK Telegram topic 2033 (`workout-morning-checkin`) — done; Friday is Lower B + core in the weekly template, no 2026-08-06 workout log exists so briefly note yesterday stayed empty if he meant to train, lead with recovery first, ask how he feels, ask what time today’s workout is, and tell him to send `leaving now` when he heads to the gym
