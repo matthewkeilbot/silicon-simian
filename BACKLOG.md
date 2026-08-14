@@ -1,5 +1,6 @@
 # BACKLOG
 
+- [ ] 🟢 2026-08-14 cron: Send Matt the daily 10:00 ICT workout check-in for MEK Telegram topic 2033 (`workout-morning-checkin`) — in progress; Friday is Lower B + core in the weekly template, no 2026-08-13 workout log exists so briefly note yesterday stayed empty if he meant to train, lead with recovery first, ask how he feels, ask what time today’s workout is, and tell him to send `leaving now` when he heads to the gym
 - [ ] 🟢 2026-08-13 cron: Send Matt the daily 10:00 ICT workout check-in for MEK Telegram topic 2033 (`workout-morning-checkin`) — in progress; Thursday is Upper B + core in the weekly template, no 2026-08-12 workout log exists so briefly note yesterday stayed empty if he meant to train, lead with recovery first, ask how he feels, ask what time today’s workout is, and tell him to send `leaving now` when he heads to the gym
 - [ ] 🟢 2026-08-12 cron: Send Matt the daily 10:00 ICT workout check-in for MEK Telegram topic 2033 (`workout-morning-checkin`) — in progress; Wednesday is recovery/rest by default in the weekly template, no 2026-08-11 workout log exists so briefly note yesterday stayed empty if he meant to train, lead with recovery first, ask how he feels, and steer toward the best low-cost recovery option unless he feels unusually fresh for an optional easy run
 
